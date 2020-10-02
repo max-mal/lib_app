@@ -23,8 +23,9 @@ import 'utils/convert.dart';
 
 class ServerApi {
   String token;
-  String serverUrl = 'http://192.168.88.167:8081/api/';
-  String booksUrl = 'http://192.168.88.167:8081/books/';
+  String serverUrl = Platform.environment['dev'] == null? 'https://book-sunna.sabr.com.tr/api/' : 'http://192.168.88.167:8081/api/';
+  String booksUrl  = Platform.environment['dev'] == null? 'https://book-sunna.sabr.com.tr/books/' : 'http://192.168.88.167:8081/books/';
+
 
   bool hasConnection = false;
 

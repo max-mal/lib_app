@@ -169,6 +169,21 @@ class ReaderScreenState extends State<ReaderScreen> {
         ),
         body: Stack(
           children: [
+            isPaged?
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Opacity(
+                  opacity: 0,
+                  child: Container(
+                    margin: EdgeInsets.only(left: 25, right: 25),
+                    color: Colors.red,
+                    child: measureWidget,
+                    key: buildColumnKey,
+                  ),
+                )
+              ],
+            ): Container(),
             Column(
               children: [
                 SizedBox(height: 89),
@@ -223,21 +238,6 @@ class ReaderScreenState extends State<ReaderScreen> {
             ),
             showSettings? Container(child: this.settings()): Container(),
             showTts? Container(child: this.ttsSettings()): Container(),
-            isPaged?
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Opacity(
-                    opacity: 0,
-                    child: Container(
-                      margin: EdgeInsets.only(left: 25, right: 25),
-                      color: Colors.red,
-                      child: measureWidget,
-                      key: buildColumnKey,
-                    ),
-                  )
-                ],
-              ): Container(),
           ],
         )
     );
@@ -250,7 +250,7 @@ class ReaderScreenState extends State<ReaderScreen> {
   bool canRead = false;
   Widget measureWidget;
 
-  bool isPaged = true;
+  bool isPaged = false;
 
   waitUntilRender() async {
     rendered = false;
@@ -628,6 +628,7 @@ class ReaderScreenState extends State<ReaderScreen> {
             children: [
               this.settingsFontSize(),
               this.settingsNightMode(),
+              this.settingsPaging(),
               this.settingsFontColor(),
               this.settingsFont(),
             ],
@@ -761,6 +762,10 @@ class ReaderScreenState extends State<ReaderScreen> {
       builtChapterBody = {};
       initialLaunch = true;
     });
+
+    if (isPaged) {
+      this.buildPages();
+    }
   }
 
   Widget settingsFontSize()
@@ -829,6 +834,28 @@ class ReaderScreenState extends State<ReaderScreen> {
           CupertinoSwitch(
             value: readerNightMode,
             onChanged: (bool value) { setState(() { readerNightMode = value; this.resetBook(); }); },
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget settingsPaging() {
+    return Container(
+      decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: AppColors.secondary, width: 1))
+      ),
+      padding: EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(isPaged? 'Страницы' : 'Прокрутка', style: TextStyle(
+              fontSize: 14,
+              color: AppColors.grey
+          )),
+          CupertinoSwitch(
+            value: isPaged,
+            onChanged: (bool value) { setState(() { isPaged = value ? true: false; this.resetBook(); }); },
           )
         ],
       ),
@@ -948,6 +975,7 @@ class ReaderScreenState extends State<ReaderScreen> {
     await Preferences.set('readerNightMode', readerNightMode ? '1' : '0');
     await Preferences.set('readerFontColor', readerFontColor ==  AppColors.grey? 'grey' : 'secondary');
     await Preferences.set('readerFontFamily', readerFontFamily);
+    await Preferences.set('readerPaged', isPaged ? '1' : '0');
   }
 
   loadPreferences() async {
@@ -955,6 +983,8 @@ class ReaderScreenState extends State<ReaderScreen> {
     readerNightMode = (await Preferences.get('readerNightMode', value: '0')) == '1' ? true : false;
     readerFontColor = (await Preferences.get('readerFontColor', value: 'grey')) == 'grey' ? AppColors.grey : AppColors.secondary;
     readerFontFamily = (await Preferences.get('readerFontFamily', value: readerFontFamily));
+    isPaged = (await Preferences.get('readerPaged', value: '0')) == '1' ? true : false;
+    isPaged = (await Preferences.get('readerPaged', value: '0')) == '1' ? true : false;
   }
 
   var ttsState;
