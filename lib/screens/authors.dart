@@ -49,6 +49,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
 //  return this.authorsList();
+
     return new Container(
         child: SizedBox(
           height: MediaQuery.of(context).size.height, // or something simular :)

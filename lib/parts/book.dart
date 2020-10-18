@@ -61,7 +61,7 @@ class BookWidget extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        constraints: BoxConstraints(maxWidth: 200),
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 200),
                         margin: EdgeInsets.only(top: 8),
                         child: InkWell(
                           onTap: () {

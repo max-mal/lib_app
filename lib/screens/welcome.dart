@@ -27,25 +27,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
     return new Container(
       child: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height, // or something simular :)
-          child: Stack(
-            children: [
-              new Column(
-                children: [
-                  this.welcomeText(),
-                  this.welcomeDescriptionText(),
-                  this.loginForm(),
-                ],
-              ),
-              Positioned(
-                bottom: 40,
-                left: 20,
-                right: 20,
-                child: this.noAccountText(),
-              )
-            ],
-          ) ,
+        child: Stack(
+          children: [
+            new Column(
+              children: [
+                this.welcomeText(),
+                this.welcomeDescriptionText(),
+                this.loginForm(),
+                SizedBox(height: 100),
+              ],
+            ),
+            Positioned(
+              bottom: 40,
+              left: 20,
+              right: 20,
+              child: this.noAccountText(),
+            )
+          ],
         ),
       ),
     );

@@ -162,7 +162,7 @@ class _GenresScreenState extends State<GenresScreen> with AutomaticKeepAliveClie
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     new Container(
-                      constraints: BoxConstraints(maxWidth: 250),
+                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6),
                       margin: EdgeInsets.only(bottom: 4),
                       child: Text(currentGenre.name, textAlign: TextAlign.left, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white))
                     ),

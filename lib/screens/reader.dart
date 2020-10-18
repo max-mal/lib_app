@@ -169,7 +169,6 @@ class ReaderScreenState extends State<ReaderScreen> {
         ),
         body: Stack(
           children: [
-            isPaged?
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -183,7 +182,7 @@ class ReaderScreenState extends State<ReaderScreen> {
                   ),
                 )
               ],
-            ): Container(),
+            ),
             Column(
               children: [
                 SizedBox(height: 89),
