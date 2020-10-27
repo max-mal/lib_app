@@ -37,6 +37,12 @@ class StartScreenSliderState extends State<StartScreenSlider>
     animation = Tween<double>(begin: 0.0, end: 7.0).animate(circleController);
 
     circleController.forward();
+
+    pageController.addListener(() {
+      setState(() {
+        currentSlide = (pageController.page).toInt();
+      });
+    });
   }
 
   changeSlide() async {
@@ -49,8 +55,10 @@ class StartScreenSliderState extends State<StartScreenSlider>
       if (currentSlide > widget.slides.length - 1) {
         currentSlide = widget.slides.length - 1;
       }
+      pageController.animateToPage(currentSlide,
+          duration: Duration(milliseconds: 300), curve: Curves.linear);
     });
-    print('Here!');
+    print('Change Slide');
 
     await Future.delayed(Duration(milliseconds: 400));
 
@@ -65,32 +73,39 @@ class StartScreenSliderState extends State<StartScreenSlider>
   List<Widget> sliderDots = [];
   List<Widget> sliderDotsInner = [];
 
+  PageController pageController = PageController();
+
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Column(
         children: [
           Container(
-            constraints: BoxConstraints(minHeight: 150),
-            child: AnimatedSwitcher(
-                duration: Duration(milliseconds: 400),
-                child: Column(
+            height: 160,
+            constraints: BoxConstraints(minHeight: 160),
+            child: PageView(
+              controller: pageController,
+              children: widget.slides.map((e) {
+                Widget w = Column(
                   children: [
-                    Text(widget.slides[currentSlide].title,
+                    Text(e.title,
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 20,
                         )),
                     SizedBox(height: 15),
-                    Text(widget.slides[currentSlide].description,
+                    Text(e.description,
                         style: TextStyle(
                           fontWeight: FontWeight.w400,
                           fontSize: 14,
                         )),
-                    widget.slides[currentSlide].bottomWidget ?? Container(),
+                    e.bottomWidget ?? Container(),
                     SizedBox(height: 30),
                   ],
-                )),
+                );
+                return w;
+              }).toList(),
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
