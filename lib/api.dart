@@ -23,9 +23,12 @@ import 'utils/convert.dart';
 
 class ServerApi {
   String token;
-  String serverUrl = Platform.environment['dev'] == null? 'https://book-sunna.sabr.com.tr/api/' : 'http://192.168.88.167:8081/api/';
-  String booksUrl  = Platform.environment['dev'] == null? 'https://book-sunna.sabr.com.tr/books/' : 'http://192.168.88.167:8081/books/';
-
+  String serverUrl = Platform.environment['dev'] == null
+      ? 'https://book-sunna.sabr.com.tr/api/'
+      : 'http://192.168.88.167:8081/api/';
+  String booksUrl = Platform.environment['dev'] == null
+      ? 'https://book-sunna.sabr.com.tr/books/'
+      : 'http://192.168.88.167:8081/books/';
 
   bool hasConnection = false;
 
@@ -49,15 +52,14 @@ class ServerApi {
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.red,
         textColor: Colors.white,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
 
-
-  dynamic get(String method, {List<String> params, ignoreConnectionStatus = false}) async {
+  dynamic get(String method,
+      {List<String> params, ignoreConnectionStatus = false}) async {
     if (!this.hasConnection && !ignoreConnectionStatus) {
       this.showNoConnectionToast();
-      return {'ok': false, 'error' : []};
+      return {'ok': false, 'error': []};
     }
 
     if (params == null) {
@@ -65,37 +67,39 @@ class ServerApi {
     }
     print('GET ' + method);
     try {
-      http.Response response = await http.get(
-          serverUrl + method + (token != null ? ('?token=' + token) : '') + params.join('&'));
+      http.Response response = await http.get(serverUrl +
+          method +
+          (token != null ? ('?token=' + token) : '') +
+          params.join('&'));
       return jsonDecode(response.body);
     } catch (exception) {
       print(exception);
-      return {'ok': false, 'error' : []};
+      return {'ok': false, 'error': []};
     }
   }
 
-  dynamic post(String method, var body, {ignoreConnectionStatus = false}) async {
-
+  dynamic post(String method, var body,
+      {ignoreConnectionStatus = false}) async {
     if (!this.hasConnection && !ignoreConnectionStatus) {
       this.showNoConnectionToast();
-      return {'ok': false, 'error' : []};
+      return {'ok': false, 'error': []};
     }
 
     print('POST ' + method + body.toString());
     http.Response response;
     try {
-      response  = await http.post(serverUrl + method + (token != null ? ('?token=' + token) : ''), body: body);
+      response = await http.post(
+          serverUrl + method + (token != null ? ('?token=' + token) : ''),
+          body: body);
       print(response.body);
       return jsonDecode(response.body);
     } catch (exception) {
       print(exception);
-      return {'ok': false, 'error' : []};
+      return {'ok': false, 'error': []};
     }
-
   }
 
   String getError(var response, {bool showSnackbar = false}) {
-
     if (response['error'] == null) {
       return 'Unknown error';
     }
@@ -106,30 +110,34 @@ class ServerApi {
         message += err.join('\n');
       }
       if (showSnackbar && hasConnection) {
-        Scaffold.of(snackBarContext).showSnackBar(SnackBar(content: Text(message)));
+        Scaffold.of(snackBarContext)
+            .showSnackBar(SnackBar(content: Text(message)));
       }
       return message;
     }
 
-
     if (showSnackbar && hasConnection) {
-      Scaffold.of(snackBarContext).showSnackBar(SnackBar(content: Text('Произошла ошибка. Повторите позже.')));
+      Scaffold.of(snackBarContext).showSnackBar(
+          SnackBar(content: Text('Произошла ошибка. Повторите позже.')));
     }
 
     return 'Произошла ошибка. Повторите позже.';
-
   }
 
   dynamic login(String email, String password) async {
-    var response = await this.post('auth/login', {'username': email, 'password': password});
+    var response = await this
+        .post('auth/login', {'username': email, 'password': password});
     if (response['ok'] == true) {
-
       this.token = response['token'];
       Preferences.set('token', token);
 
       var userResponse = await this.get('profile/get');
       print(userResponse);
-      user = new User(id: userResponse['id'], name: userResponse['name'], lastName: userResponse['lastName'], email: userResponse['email']);
+      user = new User(
+          id: userResponse['id'],
+          name: userResponse['name'],
+          lastName: userResponse['lastName'],
+          email: userResponse['email']);
       await user.store();
       return true;
     }
@@ -138,7 +146,11 @@ class ServerApi {
   }
 
   dynamic updateProfile() async {
-    var response = await this.post('profile/update', {'name': user.name ?? '', 'email': user.email, 'lastName' : user.lastName ?? ''});
+    var response = await this.post('profile/update', {
+      'name': user.name ?? '',
+      'email': user.email,
+      'lastName': user.lastName ?? ''
+    });
 
     if (response['ok'] == true) {
       return true;
@@ -147,7 +159,8 @@ class ServerApi {
   }
 
   dynamic register(String email, String password) async {
-    var response = await this.post('auth/register', {'email': email, 'password': password});
+    var response = await this
+        .post('auth/register', {'email': email, 'password': password});
     if (response['ok'] != true) {
       return this.getError(response);
     }
@@ -164,14 +177,19 @@ class ServerApi {
     }
 
     for (var responseGenre in response['genres']) {
-      var genre = await new Genre().where('id = ?', [responseGenre['id']]).find();
+      var genre =
+          await new Genre().where('id = ?', [responseGenre['id']]).find();
       if (genre.length > 0) {
         genre = genre[0];
         if (responseGenre['isDeleted'] == true) {
           await genre.remove();
         }
       } else {
-        genre = new Genre(id: responseGenre['id'], name: responseGenre['name'], picture: responseGenre['picture'], count: int.parse(responseGenre['count']));
+        genre = new Genre(
+            id: responseGenre['id'],
+            name: responseGenre['name'],
+            picture: responseGenre['picture'],
+            count: int.parse(responseGenre['count']));
         await genre.store();
       }
     }
@@ -179,12 +197,15 @@ class ServerApi {
     return await new Genre().all();
   }
 
-  dynamic getAuthors({String query, bool byGenres = false, String genres: ''}) async {
+  dynamic getAuthors(
+      {String query, bool byGenres = false, String genres: ''}) async {
     var response;
     if (byGenres) {
-      response = await this.get('author/by-genres', params: ['&genres=' + genres]);
+      response =
+          await this.get('author/by-genres', params: ['&genres=' + genres]);
     } else {
-      response = await this.get('author/list', params: query == null ? [] : ['&query=' + query]);
+      response = await this
+          .get('author/list', params: query == null ? [] : ['&query=' + query]);
     }
 
     if (response['ok'] != true) {
@@ -195,14 +216,21 @@ class ServerApi {
     List<dynamic> list = [];
 
     for (var responseGenre in response['authors']) {
-      var author = await new Author().where('id = ?', [responseGenre['id']]).find();
+      var author =
+          await new Author().where('id = ?', [responseGenre['id']]).find();
       if (author.length > 0) {
         author = author[0];
         if (responseGenre['isDeleted'] == true) {
           await author.remove();
         }
       } else {
-        author = new Author(id: responseGenre['id'], name: responseGenre['name'],surname: responseGenre['surname'], picture: responseGenre['picture'], description: responseGenre['description'], count: int.parse(responseGenre['count']));
+        author = new Author(
+            id: responseGenre['id'],
+            name: responseGenre['name'],
+            surname: responseGenre['surname'],
+            picture: responseGenre['picture'],
+            description: responseGenre['description'],
+            count: int.parse(responseGenre['count']));
         await author.store();
       }
       list.add(author);
@@ -210,17 +238,17 @@ class ServerApi {
 
     return list;
   }
-  
+
   dynamic setUserGenres() async {
     List<int> genreIds = [];
     var userGenres = await new UserGenre().all();
-    
+
     for (var genre in userGenres) {
       genreIds.add(genre.genreId);
     }
-    
+
     String genres = genreIds.join(',');
-    
+
     var response = await this.post('profile/set-genres', {'genres': genres});
 
     return response['ok'] == true;
@@ -240,19 +268,20 @@ class ServerApi {
 
     return response['ok'] == true;
   }
-  
+
   getUserAuthors() async {
     var response = await this.get('profile/get-authors');
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return false;
     }
-    
-    for (var responseAuthor in response['authors']) {
-      UserAuthor userAuthor = await UserAuthor().where('authorId = ?', [responseAuthor['author_id'].toString()]).first();
 
-      if (userAuthor == null ) {
-        userAuthor = new  UserAuthor();
+    for (var responseAuthor in response['authors']) {
+      UserAuthor userAuthor = await UserAuthor().where(
+          'authorId = ?', [responseAuthor['author_id'].toString()]).first();
+
+      if (userAuthor == null) {
+        userAuthor = new UserAuthor();
         userAuthor.authorId = toInt(responseAuthor['author_id']);
         await userAuthor.save();
       }
@@ -267,10 +296,11 @@ class ServerApi {
     }
 
     for (var responseAuthor in response['genres']) {
-      UserGenre userGenre = await UserGenre().where('genreId = ?', [responseAuthor['genre_id'].toString()]).first();
+      UserGenre userGenre = await UserGenre().where(
+          'genreId = ?', [responseAuthor['genre_id'].toString()]).first();
 
-      if (userGenre == null ) {
-        userGenre = new  UserGenre();
+      if (userGenre == null) {
+        userGenre = new UserGenre();
         userGenre.genreId = toInt(responseAuthor['genre_id']);
         await userGenre.save();
       }
@@ -278,10 +308,14 @@ class ServerApi {
   }
 
   getGenreBooks(Genre genre, {bool popular = false, int page = 1}) async {
-    var response = await this.get('genre/books', params: popular?
-      ['&popular=1', 'page=' + page.toString(), 'genre=' + genre.id.toString()] :
-      ['&genre=' + genre.id.toString(), 'page=' + page.toString()]
-    );
+    var response = await this.get('genre/books',
+        params: popular
+            ? [
+                '&popular=1',
+                'page=' + page.toString(),
+                'genre=' + genre.id.toString()
+              ]
+            : ['&genre=' + genre.id.toString(), 'page=' + page.toString()]);
 
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
@@ -295,8 +329,21 @@ class ServerApi {
     return list;
   }
 
-  getBooks({authors: '', genres: '', popular: false, page: 1, query: '', reading: ''}) async {
-    var response = await this.get('books/list', params: ['&authors=' + authors, '&reading=' + reading, 'query='+query, 'genres='+ genres, 'page=' + page.toString(), 'popular=' + (popular? '1' : '')]);
+  getBooks(
+      {authors: '',
+      genres: '',
+      popular: false,
+      page: 1,
+      query: '',
+      reading: ''}) async {
+    var response = await this.get('books/list', params: [
+      '&authors=' + authors,
+      '&reading=' + reading,
+      'query=' + query,
+      'genres=' + genres,
+      'page=' + page.toString(),
+      'popular=' + (popular ? '1' : '')
+    ]);
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return [];
@@ -310,7 +357,8 @@ class ServerApi {
   }
 
   getRecommendationBooks({int page = 1}) async {
-    var response = await this.get('books/recs', params: ['&page=' + page.toString()]);
+    var response =
+        await this.get('books/recs', params: ['&page=' + page.toString()]);
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return [];
@@ -324,7 +372,8 @@ class ServerApi {
   }
 
   getAuthor(int id) async {
-    var response = await this.get('author/get', params: ['&id=' + id.toString()]);
+    var response =
+        await this.get('author/get', params: ['&id=' + id.toString()]);
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -332,22 +381,29 @@ class ServerApi {
 
     var responseAuthor = response['author'];
 
-    var author = await new Author().where('id = ?', [responseAuthor['id']]).first();
+    var author =
+        await new Author().where('id = ?', [responseAuthor['id']]).first();
     if (author != null) {
       if (responseAuthor['isDeleted'] == true) {
         await author.remove();
       }
     } else {
-      author = new Author(id: responseAuthor['id'], name: responseAuthor['name'],surname: responseAuthor['surname'], picture: responseAuthor['picture'], count: int.parse(responseAuthor['count']), description: responseAuthor['description']);
+      author = new Author(
+          id: responseAuthor['id'],
+          name: responseAuthor['name'],
+          surname: responseAuthor['surname'],
+          picture: responseAuthor['picture'],
+          count: int.parse(responseAuthor['count']),
+          description: responseAuthor['description']);
       await author.store();
     }
 
     return author;
-
   }
 
   syncBooks(var responseBook) async {
-    Book book = await new Book().where('id = ?', [responseBook['id'].toString()]).first();
+    Book book = await new Book()
+        .where('id = ?', [responseBook['id'].toString()]).first();
     if (book != null) {
       if (responseBook['isDeleted'] == true) {
         await book.remove();
@@ -355,7 +411,8 @@ class ServerApi {
     } else {
       book = new Book();
     }
-    if (book.progress != null &&book.progress > toInt(responseBook['progress'])) {
+    if (book.progress != null &&
+        book.progress > toInt(responseBook['progress'])) {
       await setProgress(book);
     }
     book.loadFromResponse(responseBook);
@@ -368,7 +425,9 @@ class ServerApi {
 
   syncBookGenres(Book book, var responseBook) async {
     for (var bookGenreId in responseBook['genres']) {
-      BookGenre bookGenre = await BookGenre().where('genreId = ? and bookId = ?', [bookGenreId.toString(), book.id.toString()]).first();
+      BookGenre bookGenre = await BookGenre().where(
+          'genreId = ? and bookId = ?',
+          [bookGenreId.toString(), book.id.toString()]).first();
 
       if (bookGenre == null) {
         bookGenre = new BookGenre();
@@ -378,7 +437,8 @@ class ServerApi {
       }
     }
 
-    for (BookGenre bookGenre in await BookGenre().where('bookId = ?', [book.id]).find() ) {
+    for (BookGenre bookGenre
+        in await BookGenre().where('bookId = ?', [book.id]).find()) {
       if (!responseBook['genres'].contains(bookGenre.genreId)) {
         await bookGenre.remove();
       }
@@ -388,7 +448,9 @@ class ServerApi {
   syncBookTypes(Book book, var responseBook) async {
     List<dynamic> ids = [];
     for (var responseBookType in responseBook['type']) {
-      BookToType bookType = await BookToType().where('typeId = ? and bookId = ?', [responseBookType["SeqId"].toString(), book.id.toString()]).first();
+      BookToType bookType = await BookToType().where(
+          'typeId = ? and bookId = ?',
+          [responseBookType["SeqId"].toString(), book.id.toString()]).first();
 
       ids.add(responseBookType["SeqId"].toString());
       if (bookType == null) {
@@ -399,7 +461,8 @@ class ServerApi {
         await bookType.save();
       }
 
-      BookType type = await BookType().where('id = ?', [bookType.typeId.toString()]).first();
+      BookType type = await BookType()
+          .where('id = ?', [bookType.typeId.toString()]).first();
       if (type == null) {
         type = new BookType();
       }
@@ -408,26 +471,28 @@ class ServerApi {
       await type.save();
     }
 
-    for (BookToType bookType in await BookToType().where('bookId = ?', [book.id]).find() ) {
+    for (BookToType bookType
+        in await BookToType().where('bookId = ?', [book.id]).find()) {
       if (!ids.contains(bookType.typeId.toString())) {
         await bookType.remove();
       }
     }
   }
-  
+
   getChapters(int id) async {
     if (!hasConnection) {
       return false;
     }
-    var response = await  this.get('books/chapters', params: ['&id=' + id.toString()]);
+    var response =
+        await this.get('books/chapters', params: ['&id=' + id.toString()]);
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
     }
 
     for (var chapter in response['chapters']) {
-
-      BookChapter bookChapter = await BookChapter().where('id = ?', [chapter['id'].toString()]).first();
+      BookChapter bookChapter = await BookChapter()
+          .where('id = ?', [chapter['id'].toString()]).first();
 
       if (bookChapter == null) {
         bookChapter = new BookChapter();
@@ -447,7 +512,11 @@ class ServerApi {
     if (!serverApi.hasConnection) {
       return false;
     }
-    var response = await this.post('books/set-progress', {'id': book.id.toString(), 'progress': book.progress.toString(), 'currentChapter' : book.currentChapter.toString()});
+    var response = await this.post('books/set-progress', {
+      'id': book.id.toString(),
+      'progress': book.progress.toString(),
+      'currentChapter': book.currentChapter.toString()
+    });
     if (response['ok'] != true) {
       print(response.toString());
       this.getError(response, showSnackbar: true);
@@ -456,14 +525,15 @@ class ServerApi {
   }
 
   syncCollections() async {
-    var response = await  this.get('collection/list');
+    var response = await this.get('collection/list');
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
     }
 
     for (var responseCollection in response['collections']) {
-      Collection collection = await Collection().where('id = ? ', [responseCollection['id'].toString()]).first();
+      Collection collection = await Collection()
+          .where('id = ? ', [responseCollection['id'].toString()]).first();
 
       bool isCollectionCreated = false;
 
@@ -475,12 +545,17 @@ class ServerApi {
         isCollectionCreated = true;
       }
 
-      var responseBooks = await this.get('collection/books', params: ['&id=' + collection.id.toString()]);
+      var responseBooks = await this
+          .get('collection/books', params: ['&id=' + collection.id.toString()]);
 
       List<int> serverBookIds = [];
       List<int> clientBookIds = [];
       for (var responseBook in responseBooks['collectionBooks']) {
-        CollectionBook collectionBook = await CollectionBook().where('bookId = ? and collectionId = ?', [responseBook['book_id'].toString(), collection.iid.toString()]).first();
+        CollectionBook collectionBook = await CollectionBook().where(
+            'bookId = ? and collectionId = ?', [
+          responseBook['book_id'].toString(),
+          collection.iid.toString()
+        ]).first();
 
         serverBookIds.add(toInt(responseBook['book_id']));
 
@@ -492,8 +567,8 @@ class ServerApi {
         }
       }
 
-
-      for (CollectionBook cBook in await CollectionBook().where('collectionId = ?', [collection.iid.toString()]).find()) {
+      for (CollectionBook cBook in await CollectionBook()
+          .where('collectionId = ?', [collection.iid.toString()]).find()) {
         clientBookIds.add(cBook.bookId);
       }
 
@@ -503,7 +578,6 @@ class ServerApi {
           await this.removeCollectionBook(collection, bookId);
         }
       }
-
     }
 
     for (Collection localCollection in await Collection().all()) {
@@ -514,7 +588,6 @@ class ServerApi {
         for (Book book in await localCollection.getBooks()) {
           await this.addCollectionBook(localCollection, book.id);
         }
-
       }
 
       if (localCollection.isDeleted) {
@@ -528,7 +601,8 @@ class ServerApi {
     if (!hasConnection) {
       return false;
     }
-    var response = await this.post('collection/create', {'name': collection.name});
+    var response =
+        await this.post('collection/create', {'name': collection.name});
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -542,7 +616,8 @@ class ServerApi {
     if (!hasConnection) {
       return false;
     }
-    var response = await this.post('collection/add-book', {'id': collection.id.toString(), 'bookId': bookId.toString()});
+    var response = await this.post('collection/add-book',
+        {'id': collection.id.toString(), 'bookId': bookId.toString()});
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -554,7 +629,8 @@ class ServerApi {
     if (!hasConnection) {
       return false;
     }
-    var response = await this.post('collection/remove-book', {'id': collection.id.toString(), 'bookId': bookId.toString()});
+    var response = await this.post('collection/remove-book',
+        {'id': collection.id.toString(), 'bookId': bookId.toString()});
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -566,7 +642,8 @@ class ServerApi {
     if (!hasConnection) {
       return false;
     }
-    var response = await this.post('collection/delete', {'id': collection.id.toString()});
+    var response =
+        await this.post('collection/delete', {'id': collection.id.toString()});
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -578,7 +655,8 @@ class ServerApi {
     if (!hasConnection) {
       return false;
     }
-    var response = await this.post('collection/update', {'id': collection.id.toString(), 'name': collection.name});
+    var response = await this.post('collection/update',
+        {'id': collection.id.toString(), 'name': collection.name});
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -587,7 +665,8 @@ class ServerApi {
   }
 
   getBook(int id) async {
-    var response = await  this.get('books/get', params: ['&id=' + id.toString()]);
+    var response =
+        await this.get('books/get', params: ['&id=' + id.toString()]);
     if (response['ok'] != true) {
       this.getError(response, showSnackbar: true);
       return null;
@@ -596,4 +675,13 @@ class ServerApi {
     return await this.syncBooks(response['book']);
   }
 
+  getPromoBooks() async {
+    var response = await this.get('promo/books');
+    if (response['ok'] != true) {
+      this.getError(response, showSnackbar: true);
+      return null;
+    }
+
+    return response['books'];
+  }
 }
