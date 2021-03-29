@@ -7,11 +7,11 @@ class UiButtonColors {
 }
 
 class UiButton extends StatelessWidget {
-  Color backgroundColor;
-  Color borderColor;
-  Widget child;
-  Function onPressed;
-  EdgeInsets padding;
+  final Color backgroundColor;
+  final Color borderColor;
+  final Widget child;
+  final Function onPressed;
+  final EdgeInsets padding;
 
   UiButton(
       {this.backgroundColor = UiButtonColors.primaryColor,
@@ -22,13 +22,16 @@ class UiButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FlatButton(
-      color: backgroundColor,
-      shape: new RoundedRectangleBorder(
+    return TextButton(
+      style: ButtonStyle(
+        backgroundColor: MaterialStateProperty.all(backgroundColor),
+        shape: MaterialStateProperty.all(RoundedRectangleBorder(
           side: BorderSide(color: borderColor),
-          borderRadius: new BorderRadius.circular(14.0)),
-      onPressed: onPressed,
-      minWidth: MediaQuery.of(context).size.width - 50,
+          borderRadius: new BorderRadius.circular(14.0))
+        ),
+        minimumSize: MaterialStateProperty.all(Size.fromWidth(MediaQuery.of(context).size.width - 50))
+      ),
+      onPressed: onPressed,      
       child: Container(
         padding: padding ?? EdgeInsets.symmetric(vertical: 20),
         child: child,

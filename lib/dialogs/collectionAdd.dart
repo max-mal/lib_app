@@ -5,16 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/utils/transparent.dart';
-import 'package:share/share.dart';
 import '../colors.dart';
 import '../globals.dart';
 import 'createCollection.dart';
 
 class CollectionAddDialog extends StatefulWidget {
 
-  Book book;
-  bool showTrash;
-  Function doAfter;
+  final Book book;
+  // bool showTrash;
+  final Function doAfter;
 
 
   CollectionAddDialog(this.book, this.doAfter);
@@ -181,9 +180,11 @@ class CollectionAddDialogState extends State<CollectionAddDialog> with TickerPro
     return ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: FlatButton(
-          color: color,
-          padding: EdgeInsets.all(10),
+        child: TextButton(
+          style: ButtonStyle(
+            padding: MaterialStateProperty.all(EdgeInsets.all(10)),
+            backgroundColor: MaterialStateProperty.all(color),
+          ),          
           onPressed: action,
           child: new Text(text, style: TextStyle(
             fontSize: 14,
@@ -224,7 +225,7 @@ class CollectionAddDialogState extends State<CollectionAddDialog> with TickerPro
       progressIndicatorValueColor: AlwaysStoppedAnimation(AppColors.secondary),
       progressIndicatorController: _progressAnimcontroller,
       duration: Duration(seconds: 5),
-      mainButton: FlatButton(
+      mainButton: TextButton(
         onPressed: () async {
           for (Collection collection in collections) {
             int index = userCollections.indexOf(collection);
