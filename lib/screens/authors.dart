@@ -48,8 +48,6 @@ class _AuthorsScreenState extends State<AuthorsScreen> with AutomaticKeepAliveCl
 
   @override
   Widget build(BuildContext context) {
-//  return this.authorsList();
-
     return new Container(
         child: SizedBox(
           height: MediaQuery.of(context).size.height, // or something simular :)
@@ -239,9 +237,11 @@ class _AuthorsScreenState extends State<AuthorsScreen> with AutomaticKeepAliveCl
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: RaisedButton(
-          color: AppColors.primary,
-          padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),         
           onPressed: () async {
             await serverApi.setUserAuthors();
             widget.goTo('congratulation');

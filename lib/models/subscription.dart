@@ -1,5 +1,3 @@
-import 'package:faker/faker.dart';
-
 class Subscription {
   int id;
   String name;

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/models/author.dart';
 import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/genre.dart';
 import 'package:flutter_app/parts/book.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -68,7 +66,6 @@ class _AuthorScreenState extends State<AuthorScreen> with AutomaticKeepAliveClie
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Column(
         children: [
@@ -212,7 +209,7 @@ class _AuthorScreenState extends State<AuthorScreen> with AutomaticKeepAliveClie
     String data = html2md.convert(widget.author.description, styleOptions: { 'headingStyle': 'atx' }, ignore: ['script', 'style']);
     return SingleChildScrollView(
       child: Container(
-        child: MarkdownBody(data: data, onTapLink: (url) {
+        child: MarkdownBody(data: data, onTapLink: (text, url, title) {
           launch(url);
         }, styleSheet: MarkdownStyleSheet(
             p: TextStyle(

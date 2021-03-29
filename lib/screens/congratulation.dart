@@ -81,9 +81,11 @@ class _CongratulationScreenState extends State<CongratulationScreen> {
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: FlatButton(
-          color: AppColors.primary,
-          padding: EdgeInsets.all(10),
+        child: TextButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),          
           onPressed: () {
               widget.goTo('home');
           },

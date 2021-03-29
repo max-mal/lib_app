@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/dialogs/selectPromoCode.dart';
-import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/models/promocode.dart';
 import 'package:flutter_app/models/subscription.dart';
 import 'package:flutter_app/utils/transparent.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class UiFormInput extends StatelessWidget {
-  String label;
-  Function validator;
-  bool obscure;
-  TextEditingController controller;
+  final String label;
+  final Function validator;
+  final bool obscure;
+  final TextEditingController controller;
   UiFormInput(
       {this.label = '', this.validator, this.obscure = false, this.controller});
 

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart';
-
-import '../api.dart';
 import '../colors.dart';
 import '../globals.dart';
 
@@ -168,9 +166,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     return new ButtonTheme(
       minWidth: MediaQuery.of(context).size.width,
       height: 52,
-      child: FlatButton(
-        color: AppColors.primary,
-        padding: EdgeInsets.all(10),
+      child: TextButton(
+        style: ButtonStyle(
+          backgroundColor: MaterialStateProperty.all(AppColors.primary),
+          padding: MaterialStateProperty.all(EdgeInsets.all(10))
+        ),
         onPressed: () {
           if (_loginFormKey.currentState.validate()) {
             serverApi.login(emailController.text, passwordController.text).then((result) {
@@ -178,7 +178,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 this.widget.goTo('home');
               } else {
                 print(result);
-                Scaffold.of(context).showSnackBar(SnackBar(content: Text(result)));
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
               }
             });
           }

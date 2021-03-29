@@ -5,9 +5,9 @@ import 'package:flutter_svg/svg.dart';
 import 'button.dart';
 
 class UiCheckbox extends StatelessWidget {
-  bool checked;
-  Function onChanged;
-  Widget child;
+  final bool checked;
+  final Function onChanged;
+  final Widget child;
   UiCheckbox({this.checked, this.onChanged, this.child});
 
   @override

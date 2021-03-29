@@ -3,7 +3,6 @@ import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/screens/paymentCheckout.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import '../colors.dart';
-import '../globals.dart';
 
 class PaymentDetailsScreen extends StatefulWidget {
   final Function goTo;

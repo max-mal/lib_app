@@ -8,9 +8,7 @@ import 'package:flutter_app/models/collection.dart';
 
 import '../colors.dart';
 import '../globals.dart';
-import '../models/event.dart';
 import '../models/book.dart';
-import '../models/author.dart';
 import 'book.dart';
 
 
@@ -137,17 +135,17 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
                 BookScreen.open(context, book, (){});
               },
               onLongPress: () {
-                showDialog(context: context, child: AlertDialog(
+                showDialog(builder: (context) => AlertDialog(
                   title: Text('Удалить из коллекции?'),
                   actions: [
 
-                    FlatButton(
+                    TextButton(
                       child: Text('Нет'),
                       onPressed: (){
                         Navigator.pop(context);
                       },
                     ),
-                    FlatButton(
+                    TextButton(
                       child: Text('Да'),
                       onPressed: () async {
                         Navigator.pop(context);
@@ -157,7 +155,7 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
                       },
                     )
                   ],
-                ));
+                ), context: context);
               },
               child: Container(
                 margin: EdgeInsets.symmetric(horizontal: 12),
@@ -201,7 +199,7 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
       progressIndicatorValueColor: AlwaysStoppedAnimation(AppColors.secondary),
       progressIndicatorController: _progressAnimcontroller,
       duration: Duration(seconds: 5),
-      mainButton: FlatButton(
+      mainButton: TextButton(
         onPressed: () async {
           collection.isDeleted = false;
           await collection.save();

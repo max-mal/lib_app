@@ -1,4 +1,4 @@
-import 'package:faker/faker.dart';
+
 
 class PromoCode {
   int id;

@@ -4,10 +4,8 @@ import 'package:flutter_app/models/bookChapter.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'dart:convert';
 
-import '../colors.dart';
 import 'package:html2md/html2md.dart' as html2md;
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:http/http.dart' as http;
 
 import '../globals.dart';
 

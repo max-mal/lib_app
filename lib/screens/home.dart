@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
-import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/dialogs/search.dart';
 import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/models/userAuthor.dart';
@@ -615,9 +614,11 @@ class _HomeScreenState extends State<HomeScreen> {
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: RaisedButton(
-          color: AppColors.secondary,
-          padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),      
           onPressed: () {
             if (moreBooksLoading) {
               return false;

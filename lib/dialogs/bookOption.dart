@@ -1,23 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
 import 'package:flutter_app/dialogs/shareBook.dart';
-import 'package:flutter_app/models/author.dart';
 import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/searchResult.dart';
 import 'package:flutter_app/utils/transparent.dart';
-import 'package:share/share.dart';
 
 import '../colors.dart';
 import '../globals.dart';
 import 'collectionAdd.dart';
 
+// ignore: must_be_immutable
 class BookOptionDialog extends StatefulWidget {
 
-  Book book;
-  bool showTrash;
+  final Book book;
+  final bool showTrash;
   bool showHideButton;
-  Function onAfter;
+  final Function onAfter;
 
   BookOptionDialog(this.book, this.showTrash, {this.showHideButton, this.onAfter});
 
@@ -118,21 +115,20 @@ class BookOptionDialogState extends State<BookOptionDialog> {
 
   removeFromRead() async {
 
-    await showDialog(context: context, child: AlertDialog(
+    await showDialog(builder: (context) => AlertDialog(
       title: Text('Не показывать в списке?'),
       actions: [
 
-        FlatButton(
+        TextButton(
           child: Text('Нет'),
           onPressed: (){
             Navigator.pop(context);
           },
         ),
-        FlatButton(
+        TextButton(
           child: Text('Да'),
           onPressed: () async {
-            Navigator.pop(context);
-            //TODO
+            Navigator.pop(context);            
             readingBooksHideIds.add(widget.book.id);
             Preferences.set('readingBooksHideIds', readingBooksHideIds.join(','));
             if (widget.onAfter != null) {
@@ -142,7 +138,7 @@ class BookOptionDialogState extends State<BookOptionDialog> {
           },
         )
       ],
-    ));
+    ), context: context);
     Navigator.pop(context);
   }
 }

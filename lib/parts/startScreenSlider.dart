@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 
 class StartScreenSlider extends StatefulWidget {
-  List<Slide> slides = [];
+  final List<Slide> slides;
 
   StartScreenSlider({this.slides});
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/models/genre.dart';
 import 'package:flutter_app/parts/book.dart';
@@ -228,9 +227,11 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: RaisedButton(
-          color: AppColors.secondary,
-          padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.secondary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),          
           onPressed: () {
             if (isMoreLoading) {
               return;

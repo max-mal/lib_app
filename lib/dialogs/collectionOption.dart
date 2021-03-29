@@ -1,21 +1,17 @@
-import 'dart:async';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_app/dialogs/renameCollection.dart';
 import 'package:flutter_app/dialogs/shareCollection.dart';
 import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/utils/transparent.dart';
-import 'package:flushbar/flushbar.dart';
-
 import '../colors.dart';
-import '../globals.dart';
 
 class CollectionOptionDialog extends StatefulWidget {
 
-  Collection collection;
-  bool showTrash;
-  Function doAfter;
-  var parentContext;
+  final Collection collection;  
+  final Function doAfter;
+  final BuildContext parentContext;
 
   CollectionOptionDialog(this.collection, this.doAfter, this.parentContext);
 

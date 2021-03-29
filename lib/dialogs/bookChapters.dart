@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/models/author.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/models/bookChapter.dart';
-import 'package:flutter_app/models/searchResult.dart';
-import 'package:flutter_app/screens/category.dart';
 import 'package:flutter_app/utils/transparent.dart';
-import '../models/genre.dart';
 
 import '../colors.dart';
 
 class BookChapterDialog extends StatefulWidget {
   @override
   BookChapterDialogState createState() => new BookChapterDialogState();
-  Book book;
-  Function navigate;
+  final Book book;
+  final Function navigate;
 
   BookChapterDialog({this.book, this.navigate});
 

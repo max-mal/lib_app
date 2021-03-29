@@ -2,9 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/dialogs/subscriptionOffer.dart';
-import 'package:flutter_app/models/author.dart';
 import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/genre.dart';
 import 'package:flutter_app/models/userGenre.dart';
 import 'package:flutter_app/parts/book.dart';
 import 'package:flutter_app/screens/paymentDetails.dart';
@@ -438,7 +436,7 @@ class _BookScreenState extends State<BookScreen> with AutomaticKeepAliveClientMi
     String data = html2md.convert(widget.book.description, styleOptions: { 'headingStyle': 'atx' }, ignore: ['script', 'style']);
     return SingleChildScrollView(
       child: Container(
-        child: MarkdownBody(data: data, onTapLink: (url) {
+        child: MarkdownBody(data: data, onTapLink: (text, url, title) {
           launch(url);
         }, styleSheet: MarkdownStyleSheet(
             p: TextStyle(

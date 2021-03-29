@@ -65,7 +65,11 @@ class ServerApi {
     if (params == null) {
       params = [];
     }
-    print('GET ' + method);
+    print('GET ' +
+        serverUrl +
+        method +
+        (token != null ? ('?token=' + token) : '') +
+        params.join('&'));
     try {
       http.Response response = await http.get(serverUrl +
           method +
@@ -109,15 +113,15 @@ class ServerApi {
       for (var err in response['error'].values) {
         message += err.join('\n');
       }
-      if (showSnackbar && hasConnection) {
-        Scaffold.of(snackBarContext)
+      if (showSnackbar && hasConnection) {        
+        ScaffoldMessenger.of(snackBarContext)
             .showSnackBar(SnackBar(content: Text(message)));
       }
       return message;
     }
 
     if (showSnackbar && hasConnection) {
-      Scaffold.of(snackBarContext).showSnackBar(
+      ScaffoldMessenger.of(snackBarContext).showSnackBar(
           SnackBar(content: Text('Произошла ошибка. Повторите позже.')));
     }
 

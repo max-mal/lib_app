@@ -13,8 +13,8 @@ import '../globals.dart';
 import 'loginModal.dart';
 
 class RegisterModal extends StatefulWidget {
-  Function onRegistered;
-  Function onLogin;
+  final Function onRegistered;
+  final Function onLogin;
 
   RegisterModal({this.onRegistered, this.onLogin});
 
@@ -159,8 +159,7 @@ class RegisterModalState extends State<RegisterModal> {
     if (_signUpFormKey.currentState.validate()) {
       if (!privacyAccepted) {
         return showDialog(
-            context: context,
-            child: CupertinoAlertDialog(
+            builder: (context) => CupertinoAlertDialog(
               title: Text('Ошибка'),
               content: Text('Примите условия соглашения'),
               actions: [
@@ -172,7 +171,7 @@ class RegisterModalState extends State<RegisterModal> {
                   },
                 ),
               ],
-            ));
+            ), context: context);
       }
       UiLoader.showLoader(context);
       serverApi
@@ -185,8 +184,7 @@ class RegisterModalState extends State<RegisterModal> {
         } else {
           await UiLoader.errorLoader(context);
           showDialog(
-              context: context,
-              child: CupertinoAlertDialog(
+              builder: (context) => CupertinoAlertDialog(
                 title: Text('Ошибка'),
                 content: Text(result.toString()),
                 actions: [
@@ -198,7 +196,7 @@ class RegisterModalState extends State<RegisterModal> {
                     },
                   ),
                 ],
-              ));
+              ), context: context);
         }
       });
     }

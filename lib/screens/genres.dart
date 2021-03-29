@@ -214,9 +214,11 @@ class _GenresScreenState extends State<GenresScreen> with AutomaticKeepAliveClie
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: RaisedButton(
-          color: AppColors.primary,
-          padding: EdgeInsets.all(10),
+        child: ElevatedButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),          
           onPressed: () async {
             await serverApi.setUserGenres();
             widget.goTo('authors');

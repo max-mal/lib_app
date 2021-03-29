@@ -1,6 +1,4 @@
-import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-
 import 'api.dart';
 import 'colors.dart';
 import 'models/collection.dart';

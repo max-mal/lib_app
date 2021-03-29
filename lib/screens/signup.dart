@@ -180,16 +180,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return new ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: FlatButton(
-          color: AppColors.primary,
-          padding: EdgeInsets.all(10),
+        child: TextButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(AppColors.primary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),
           onPressed: () {
             if (_signUpFormKey.currentState.validate()) {
               serverApi.register(emailController.text, passwordController.text).then((result) {
                 if (result == true) {
                   this.widget.goTo('genres');
                 } else {
-                  Scaffold.of(context).showSnackBar(SnackBar(content: Text(result)));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
                 }
               });
             }

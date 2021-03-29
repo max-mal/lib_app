@@ -75,21 +75,21 @@ class ScreenState extends State<AppScreen> {
               unselectedItemColor: AppColors.secondary,
               items: [
                 new BottomNavigationBarItem(
-                    icon: new Icon(Icons.home), title: new Text('Home')),
+                    icon: new Icon(Icons.home), label: 'Home'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.short_text),
-                    title: new Text('Recommendations')),
+                    label: 'Recommendations'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.category),
-                    title: new Text('Categories')),
+                    label: 'Categories'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.account_circle),
-                    title: new Text('Account')),
+                    label: 'Account'),
                 new BottomNavigationBarItem(
-                    icon: new Icon(Icons.list), title: new Text('Collection')),
+                    icon: new Icon(Icons.list), label: 'Collection'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.new_releases),
-                    title: new Text('News')),
+                    label: 'News'),
               ],
               currentIndex: this.navBarSelectedIndex,
               onTap: this.onNavBarTap,

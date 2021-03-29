@@ -7,7 +7,7 @@ showCupertinoModal(BuildContext context,
     context: context,
     isDismissible: dismissable,
     backgroundColor: Colors.transparent,
-    builder: (context, scrollController) => Container(
+    builder: (context) => Container(
       // margin: EdgeInsets.only(top: 40),
       decoration: BoxDecoration(
           color: Colors.white,

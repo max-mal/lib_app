@@ -22,7 +22,7 @@ class AppDatabase {
 
   Future open() async {
     if (instance != null) {
-      return await instance;
+      return instance;
     }
     instance = await openDatabase(
       join(await getDatabasesPath(), dbName),
@@ -37,7 +37,7 @@ class AppDatabase {
       isMigrating = false;
     }
 
-    return await instance;
+    return instance;
   }
 
   AppDatabase(migrations) {

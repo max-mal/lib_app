@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:faker/faker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
@@ -23,7 +22,7 @@ enum TtsState { playing, stopped, paused, continued }
 
 class ReaderScreen extends StatefulWidget {
 
-  Book book;
+  final Book book;
 
   @override
   ReaderScreenState createState() => new ReaderScreenState();
@@ -158,11 +157,11 @@ class ReaderScreenState extends State<ReaderScreen> {
           selectedItemColor: AppColors.grey,
           unselectedItemColor: AppColors.secondary,
           items: [
-            new BottomNavigationBarItem(icon: new Icon(Icons.home), title: new Text('Домой')),
-            new BottomNavigationBarItem(icon: new Icon(Icons.bookmark), title: new Text('Сохранить')),
-            new BottomNavigationBarItem(icon: new Icon(Icons.file_upload), title: new Text('Делиться')),
-            new BottomNavigationBarItem(icon: new Icon(Icons.volume_up), title: new Text('Слушать')),
-            new BottomNavigationBarItem(icon: new Icon(Icons.settings), title: new Text('Настройки')),
+            new BottomNavigationBarItem(icon: new Icon(Icons.home), label: 'Домой'),
+            new BottomNavigationBarItem(icon: new Icon(Icons.bookmark), label: 'Сохранить'),
+            new BottomNavigationBarItem(icon: new Icon(Icons.file_upload), label: 'Делиться'),
+            new BottomNavigationBarItem(icon: new Icon(Icons.volume_up), label: 'Слушать'),
+            new BottomNavigationBarItem(icon: new Icon(Icons.settings), label: 'Настройки'),
           ],
           currentIndex: this.navBarSelectedIndex,
           onTap: this.onNavBarTap,
@@ -287,8 +286,10 @@ class ReaderScreenState extends State<ReaderScreen> {
       currentPageWidgets.add(
         Align(
           alignment: Alignment.center,
-          child: FlatButton(
-              color: AppColors.getColor('secondary'),
+          child: TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
+              ),              
               onPressed: () {
                 setState((){
                   widget.book.currentChapter = widget.book.currentChapter - 1;
@@ -365,7 +366,7 @@ class ReaderScreenState extends State<ReaderScreen> {
       }
 
 
-      print("H: $totalHeight / ${readerHeight}");
+      print("H: $totalHeight / $readerHeight");
       if (totalHeight + size.height > readerHeight) {
 
 
@@ -452,8 +453,10 @@ class ReaderScreenState extends State<ReaderScreen> {
       pages.add([
         Align(
           alignment: Alignment.center,
-          child: FlatButton(
-              color: AppColors.getColor('secondary'),
+          child: TextButton(
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
+              ), 
               onPressed: () {
                 setState((){
                   widget.book.currentChapter = widget.book.currentChapter + 1;
@@ -544,8 +547,10 @@ class ReaderScreenState extends State<ReaderScreen> {
         controller: scrollController,
         child: Column(
           children: [
-            builtChapterBody.containsKey(widget.book.currentChapter) && widget.book.currentChapter > 0? FlatButton(
-                color: AppColors.getColor('secondary'),
+            builtChapterBody.containsKey(widget.book.currentChapter) && widget.book.currentChapter > 0? TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
+                ), 
                 onPressed: () {
                   setState((){
                     widget.book.currentChapter = widget.book.currentChapter - 1;
@@ -556,8 +561,10 @@ class ReaderScreenState extends State<ReaderScreen> {
                 child: Text('Назад', style: TextStyle(color: Colors.white))
             ) : Container(),
             builtChapterBody.containsKey(widget.book.currentChapter)? builtChapterBody[widget.book.currentChapter] : Text('Загрузка...',  style: TextStyle(color: AppColors.getColor('black'))),
-            builtChapterBody.containsKey(widget.book.currentChapter) && widget.book.currentChapter < widget.book.chapters.length -1 ?FlatButton(
-                color: AppColors.getColor('secondary'),
+            builtChapterBody.containsKey(widget.book.currentChapter) && widget.book.currentChapter < widget.book.chapters.length -1 ?TextButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
+                ), 
                 onPressed: () {
                   setState((){
                     widget.book.currentChapter = widget.book.currentChapter+1;
@@ -726,7 +733,7 @@ class ReaderScreenState extends State<ReaderScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 10),
                 child: DropdownButton(
                     dropdownColor: AppColors.getColor('white'),
-                    items: ttsVoices.map((e) => DropdownMenuItem(child: Container(constraints: BoxConstraints(maxWidth: 130),child: Text(e,overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.getColor('black')))), value: e,)).toList(),
+                    items: ttsVoices.map((e) => DropdownMenuItem(child: Container(constraints: BoxConstraints(maxWidth: 130),child: Text(e.toString(), overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.getColor('black')))), value: e,)).toList(),
                     value: ttsVoice,
                     onChanged: (value) async {
                       if (value == 'По умолчанию') {
@@ -988,8 +995,8 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   var ttsState;
   String ttsLanguage = 'ru-RU';
-  String ttsVoice = 'По умолчанию';
-  List<String> ttsVoices = ['По умолчанию'];
+  dynamic ttsVoice = 'По умолчанию';
+  List<dynamic> ttsVoices = ['По умолчанию'];
 
   initTts() async {
     if (flutterTts != null) {

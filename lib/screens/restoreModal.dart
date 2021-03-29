@@ -4,17 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/parts/svg.dart';
 import 'package:flutter_app/screens/registerModal.dart';
 import 'package:flutter_app/ui/button.dart';
-import 'package:flutter_app/ui/checkbox.dart';
 import 'package:flutter_app/ui/input.dart';
 import 'package:flutter_app/ui/loader.dart';
 import 'package:flutter_app/utils/modal.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../globals.dart';
 
 class RestoreModal extends StatefulWidget {
-  Function onLogin;
-  Function onRegister;
+  final Function onLogin;
+  final Function onRegister;
 
   RestoreModal({this.onLogin, this.onRegister});
 

@@ -1,6 +1,4 @@
-import 'package:faker/faker.dart';
 import 'package:flutter_app/database/core/models/base.dart';
-import 'book.dart';
 
 class CollectionBook extends DatabaseModel {
 

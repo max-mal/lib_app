@@ -27,6 +27,8 @@ class AppColors {
       case 'black':
         return readerNightMode? DarkTheme.white : WhiteTheme.black;
     }
+
+    return null;
   }
 
 }

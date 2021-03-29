@@ -16,7 +16,7 @@ class UiLoader extends StatefulWidget {
   static showLoader(BuildContext context) async {
     loaderValue.value = 'working';
     await showDialog(
-        context: context, barrierDismissible: false, child: UiLoader());
+        builder: (context) => UiLoader(), context: context, barrierDismissible: false);
   }
 
   static doneLoader(BuildContext context) async {

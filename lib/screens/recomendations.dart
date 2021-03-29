@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/parts/book.dart';
 import '../colors.dart';
@@ -35,7 +34,6 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> with Auto
 
   @override
   Widget build(BuildContext context) {
-//  return this.genresList();
     return new SingleChildScrollView(
         child: Container(
           child: Column(

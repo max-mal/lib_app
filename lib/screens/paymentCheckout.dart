@@ -6,7 +6,6 @@ import 'package:flutter_app/parts/button.dart';
 import 'package:flutter_app/parts/input.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import '../colors.dart';
-import '../globals.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 
 class PaymentCheckoutScreen extends StatefulWidget {

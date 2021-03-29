@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/models/author.dart';
-import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/searchResult.dart';
 import 'package:flutter_app/screens/category.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import '../globals.dart';

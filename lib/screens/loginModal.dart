@@ -5,7 +5,6 @@ import 'package:flutter_app/parts/svg.dart';
 import 'package:flutter_app/screens/registerModal.dart';
 import 'package:flutter_app/screens/restoreModal.dart';
 import 'package:flutter_app/ui/button.dart';
-import 'package:flutter_app/ui/checkbox.dart';
 import 'package:flutter_app/ui/input.dart';
 import 'package:flutter_app/ui/loader.dart';
 import 'package:flutter_app/utils/modal.dart';
@@ -14,8 +13,8 @@ import 'package:flutter_svg/svg.dart';
 import '../globals.dart';
 
 class LoginModal extends StatefulWidget {
-  Function onLogin;
-  Function onRegister;
+  final Function onLogin;
+  final Function onRegister;
 
   LoginModal({this.onLogin, this.onRegister});
 
@@ -161,8 +160,7 @@ class LoginModalState extends State<LoginModal> {
         } else {
           await UiLoader.errorLoader(context);
           showDialog(
-              context: context,
-              child: CupertinoAlertDialog(
+              builder: (context) => CupertinoAlertDialog(
                 title: Text('Ошибка'),
                 content: Text(result.toString()),
                 actions: [
@@ -174,7 +172,7 @@ class LoginModalState extends State<LoginModal> {
                     },
                   ),
                 ],
-              ));
+              ), context: context);
         }
       });
     }

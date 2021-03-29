@@ -5,8 +5,8 @@ import '../colors.dart';
 
 class CollectionRenameDialog extends StatefulWidget {
 
-  Collection collection;
-  Function doAfter;
+  final Collection collection;
+  final Function doAfter;
 
   CollectionRenameDialog(this.collection, this.doAfter);
 
@@ -116,9 +116,11 @@ class CollectionRenameDialogState extends State<CollectionRenameDialog> {
     return ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: FlatButton(
-          color: color,
-          padding: EdgeInsets.all(10),
+        child: TextButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(color),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),
           onPressed: action,
           child: new Text(text, style: TextStyle(
               fontSize: 14,

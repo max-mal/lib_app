@@ -6,7 +6,7 @@ import '../globals.dart';
 
 class CollectionCreateDialog extends StatefulWidget {
 
-  Function doAfter;
+  final Function doAfter;
 
   CollectionCreateDialog(this.doAfter);
 
@@ -130,9 +130,11 @@ class CollectionCreateDialogState extends State<CollectionCreateDialog> {
     return ButtonTheme(
         minWidth: MediaQuery.of(context).size.width,
         height: 52,
-        child: FlatButton(
-          color: color,
-          padding: EdgeInsets.all(10),
+        child: TextButton(
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all(color),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+          ),
           onPressed: action,
           child: new Text(text, style: TextStyle(
             fontSize: 14,

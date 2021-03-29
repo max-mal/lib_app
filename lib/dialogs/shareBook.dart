@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:share/share.dart';
 import '../colors.dart';
 
 class BookShareDialog extends StatefulWidget {
 
-  Book book;
-  bool showTrash;
-  Function doAfter;
+  final Book book;
+  final Function doAfter;
 
   BookShareDialog(this.book, this.doAfter);
 

@@ -6,9 +6,8 @@ import '../colors.dart';
 
 class CollectionShareDialog extends StatefulWidget {
 
-  Collection collection;
-  bool showTrash;
-  Function doAfter;
+  final Collection collection;
+  final Function doAfter;
 
   CollectionShareDialog(this.collection, this.doAfter);
 

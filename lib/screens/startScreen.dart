@@ -5,12 +5,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_app/parts/startScreenSlider.dart';
 import 'package:flutter_app/screens/registerModal.dart';
 import 'package:flutter_app/ui/button.dart';
-import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import '../utils/modal.dart';
 import 'loginModal.dart';
 
 class StartScreen extends StatefulWidget {
-  Function goTo;
+  final Function goTo;
 
   StartScreen({this.goTo});
 
@@ -36,10 +35,9 @@ class StartScreenState extends State<StartScreen> {
                 Positioned(
                   top: 60,
                   right: 15,
-                  child: FlatButton(
+                  child: TextButton(
                     onPressed: () {
-                      print('Skipped');
-                      // widget.goTo('signup');
+                      print('Skipped');                      
                       showCupertinoModal(context,
                           child: RegisterModal(
                             onRegistered: () {
@@ -52,10 +50,16 @@ class StartScreenState extends State<StartScreen> {
                           dismissable: false);
                     },
                     child: Text('Пропустить',
-                        style: TextStyle(color: Colors.black)),
-                    color: Colors.white,
-                    shape: new RoundedRectangleBorder(
-                        borderRadius: new BorderRadius.circular(12.0)),
+                      style: TextStyle(color: Colors.black)
+                    ),
+                    style: ButtonStyle(
+                      backgroundColor: MaterialStateProperty.all(Colors.white),
+                      shape: MaterialStateProperty.all(
+                        RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(12.0)
+                        )
+                      )
+                    ),     
                   ),
                 )
               ],
@@ -79,7 +83,7 @@ class StartScreenState extends State<StartScreen> {
                   description: 'Все новинки, разрешите сообщать о них.',
                   bottomWidget: Container(
                     margin: EdgeInsets.only(top: 20),
-                    child: FlatButton(
+                    child: TextButton(
                       onPressed: () {
                         print('Skipped');
                       },
@@ -88,9 +92,14 @@ class StartScreenState extends State<StartScreen> {
                               color: Colors.black,
                               fontWeight: FontWeight.w600,
                               fontSize: 14)),
-                      color: Colors.white,
-                      shape: new RoundedRectangleBorder(
-                          borderRadius: new BorderRadius.circular(12.0)),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all(Colors.white),
+                        shape: MaterialStateProperty.all(
+                          RoundedRectangleBorder(
+                            borderRadius: new BorderRadius.circular(12.0)
+                          )
+                        )
+                      ), 
                     ),
                   )),
             ]),
