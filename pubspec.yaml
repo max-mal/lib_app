@@ -44,7 +44,7 @@ dependencies:
   page_turn: ^1.0.1
   catcher: ^0.4.2
   modal_bottom_sheet: ^2.0.0
-  flutter_svg: ^0.19.1
+  flutter_svg: ^0.19.3
   superellipse_shape: ^0.1.5
 
 

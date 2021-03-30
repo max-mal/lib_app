@@ -30,6 +30,12 @@ class LoadingScreenState extends State<LoadingScreen>
     initApp();
   }
 
+  @override
+  dispose(){
+    _controller.dispose();
+    super.dispose();
+  }
+
   initApp() async {
     _controller = AnimationController(
         duration: const Duration(milliseconds: 2000), vsync: this, value: 0.7);

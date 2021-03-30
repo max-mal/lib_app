@@ -18,7 +18,6 @@ class NavigationDialog extends StatefulWidget {
   }
 }
 
-List<Genre> categories = [];
 
 class NavigationDialogState extends State<NavigationDialog> {
 
@@ -26,41 +25,31 @@ class NavigationDialogState extends State<NavigationDialog> {
 
   List<Genre> categoriesFiltered = [];
 
+  List<Genre> categories = [];
+
   @override
   void initState() {
 
-    super.initState();
-
     getCategories();
+    super.initState();    
   }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-        body: Column(
-          children: [
-            Container(
-              child: this.closeModal(),
-              margin: EdgeInsets.only(top: 55),
-            ),
-            Container(
-              height: MediaQuery.of(context).size.height - MediaQuery.of(context).size.height * 0.07 - 70,
-              child: SingleChildScrollView(
-                child: new Container(
-//                  margin: EdgeInsets.only(top: 55),
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-//                    this.closeModal(),
-                      this.searchBar(),
-                      this.categoriesList(),
-                    ],
-                  ),
-                ),
+        body: Container(          
+          child: SingleChildScrollView(
+            child: new Container(
+              padding: EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  this.searchBar(),
+                  this.categoriesList(),
+                ],
               ),
             ),
-          ],
+          ),
         )
     );
   }
@@ -129,23 +118,23 @@ class NavigationDialogState extends State<NavigationDialog> {
           shrinkWrap: true,
           physics: NeverScrollableScrollPhysics(),
           separatorBuilder: (BuildContext ctx, index) {
-            return Container(
-//              padding: EdgeInsets.only(bottom: 24),
-              child: Divider(
-                color: AppColors.primary,
-                height: 2,
-              ),
-            );
+            return Container();
           },
           itemBuilder: (BuildContext ctx, index) {
             Genre item = searchController.text.isEmpty? categories[index] : categoriesFiltered[index];
 
-            return GestureDetector(
+            return InkWell(
               onTap: (){
                 CategoryScreen.open(context, item, (){});
               },
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 24),
+                decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(
+                    color: AppColors.primary,
+                    width: 2
+                  ))
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

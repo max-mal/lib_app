@@ -24,11 +24,11 @@ import 'utils/convert.dart';
 class ServerApi {
   String token;
   String serverUrl = Platform.environment['dev'] == null
-      ? 'https://book-sunna.sabr.com.tr/api/'
-      : 'http://192.168.88.167:8081/api/';
+      ? 'http://192.168.0.101:8081/api/'
+      : 'http://192.168.0.101:8081/api/';
   String booksUrl = Platform.environment['dev'] == null
-      ? 'https://book-sunna.sabr.com.tr/books/'
-      : 'http://192.168.88.167:8081/books/';
+      ? 'http://192.168.0.101:8081/books/'
+      : 'http://192.168.0.101:8081/books/';
 
   bool hasConnection = false;
 
@@ -138,7 +138,7 @@ class ServerApi {
       var userResponse = await this.get('profile/get');
       print(userResponse);
       user = new User(
-          id: userResponse['id'],
+          id: toInt(userResponse['id']),
           name: userResponse['name'],
           lastName: userResponse['lastName'],
           email: userResponse['email']);
@@ -190,7 +190,7 @@ class ServerApi {
         }
       } else {
         genre = new Genre(
-            id: responseGenre['id'],
+            id: int.parse(responseGenre['id']),
             name: responseGenre['name'],
             picture: responseGenre['picture'],
             count: int.parse(responseGenre['count']));
@@ -229,7 +229,7 @@ class ServerApi {
         }
       } else {
         author = new Author(
-            id: responseGenre['id'],
+            id: toInt(responseGenre['id']),
             name: responseGenre['name'],
             surname: responseGenre['surname'],
             picture: responseGenre['picture'],
@@ -393,7 +393,7 @@ class ServerApi {
       }
     } else {
       author = new Author(
-          id: responseAuthor['id'],
+          id: toInt(responseAuthor['id']),
           name: responseAuthor['name'],
           surname: responseAuthor['surname'],
           picture: responseAuthor['picture'],

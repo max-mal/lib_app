@@ -29,7 +29,9 @@ class UiButton extends StatelessWidget {
           side: BorderSide(color: borderColor),
           borderRadius: new BorderRadius.circular(14.0))
         ),
-        minimumSize: MaterialStateProperty.all(Size.fromWidth(MediaQuery.of(context).size.width - 50))
+        minimumSize: MaterialStateProperty.all(
+          Size(MediaQuery.of(context).size.width - 50, 0)
+          )
       ),
       onPressed: onPressed,      
       child: Container(

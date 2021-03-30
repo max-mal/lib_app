@@ -89,7 +89,7 @@ class Book extends DatabaseModel {
 
   loadFromResponse(Map<String, dynamic> map){
 
-    this.id = map['id'];
+    this.id = toInt(map['id']);
     this.title = map['title'];
     this.picture = map['picture'];
     this.description = map['description'];

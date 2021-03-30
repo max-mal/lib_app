@@ -616,8 +616,9 @@ class _HomeScreenState extends State<HomeScreen> {
         height: 52,
         child: ElevatedButton(
           style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(AppColors.primary),
-            padding: MaterialStateProperty.all(EdgeInsets.all(10))
+            backgroundColor: MaterialStateProperty.all(AppColors.secondary),
+            padding: MaterialStateProperty.all(EdgeInsets.all(10)),
+            minimumSize: MaterialStateProperty.all(Size(150, 0))
           ),      
           onPressed: () {
             if (moreBooksLoading) {

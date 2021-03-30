@@ -247,7 +247,7 @@ class HorizontalBookWidget extends StatelessWidget {
             child: Container(
               constraints: BoxConstraints(maxWidth: 200),
               margin: EdgeInsets.only(top: 8),
-              child: Text(item.genre.name, style: TextStyle(
+              child: Text(item?.genre?.name ?? '', style: TextStyle(
                 color: AppColors.secondary,
                 fontSize: 14,
               )),

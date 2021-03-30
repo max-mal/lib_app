@@ -51,32 +51,32 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: Column(
-        children: [
-          Container(
-            margin: EdgeInsets.only(top: 24),
-            child: Align(
-              alignment: Alignment.bottomLeft,
-              child: Container(
-                child: IconButton(icon: Icon(Icons.arrow_back_ios), onPressed: () {
-                  Navigator.pop(context);
-                }),
-              ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border(top: BorderSide(color: AppColors.primary))
+        ),
+        padding: EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            InkWell(
+              onTap: (){
+                Navigator.pop(context);
+              },
+              child: Icon(Icons.arrow_back, color: AppColors.grey),
             ),
-          ),
-          Container(
-            height: MediaQuery.of(context).size.height - 80,
-            child: new SingleChildScrollView(
-                child: Container(
-                  child: Column(
-                    children: [
-                      this.booksBlock(),
-                    ],
-                  ),
-                )
-            ),
-          ),
-        ],
+            Text(this.widget.genre.name ?? '', style: TextStyle(
+              color: AppColors.grey,
+              fontSize: 20,
+            ))
+          ],
+        ),
+      ),
+      body: new SingleChildScrollView(
+          child: Container(
+            child: this.booksBlock(),
+          )
       ),
     );
   }
@@ -122,21 +122,12 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
 
   Widget booksBlock()
   {
-//    this.getRecommendations();
     return Container(
-//      margin: EdgeInsets.only(top: 32),
-      padding: EdgeInsets.symmetric(horizontal: 26, vertical: 40),
+      padding: EdgeInsets.symmetric(horizontal: 26, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            child: Text(this.widget.genre.name ?? '', style: TextStyle(
-              color: Colors.black,
-              fontSize: 32,
-            )),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 12),
             child: Text(this.widget.genre.description ?? '', style: TextStyle(
               color: AppColors.secondary,
               fontSize: 14,
@@ -224,28 +215,31 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
       return Container(child: Text('Больше книг нет'));
     }
 
-    return new ButtonTheme(
-        minWidth: MediaQuery.of(context).size.width,
-        height: 52,
-        child: ElevatedButton(
-          style: ButtonStyle(
-            backgroundColor: MaterialStateProperty.all(AppColors.secondary),
-            padding: MaterialStateProperty.all(EdgeInsets.all(10))
-          ),          
-          onPressed: () {
-            if (isMoreLoading) {
-              return;
-            }
+    return Center(
+      child: new ButtonTheme(
+          minWidth: MediaQuery.of(context).size.width,
+          height: 52,
+          child: ElevatedButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(AppColors.secondary),
+              padding: MaterialStateProperty.all(EdgeInsets.all(10)),
+              minimumSize: MaterialStateProperty.all(Size(150, 0))
+            ),          
+            onPressed: () {
+              if (isMoreLoading) {
+                return;
+              }
 
-            page += 1;
-            getRecommendations(append: true);
-          },
-          child: new Text(isMoreLoading ? 'Загрузка...' : 'Далее', style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white60
-          )),
-        )
+              page += 1;
+              getRecommendations(append: true);
+            },
+            child: new Text(isMoreLoading ? 'Загрузка...' : 'Далее', style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.white60
+            )),
+          )
+      ),
     );
   }
 
