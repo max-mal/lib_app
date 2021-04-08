@@ -12,10 +12,12 @@ class BookWidget extends StatelessWidget {
   const BookWidget({
     Key key,
     this.book,
+    this.onAfter,
 
   }) : super(key: key);
 
   final Book book;
+  final Function onAfter;
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +32,38 @@ class BookWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () {
-                  BookScreen.open(context, item, (){});
+                onTap: () async{
+                  await BookScreen.open(context, item, (){});
+                  if (onAfter != null) {
+                    onAfter();
+                  }
                 },
-                child: Container(
-                  margin: EdgeInsets.only(right: 24),
-                  width: 64,
-                  height: 98,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
-                    image: DecorationImage(image: CachedNetworkImageProvider(item.picture), fit: BoxFit.cover),
+                child: Hero(
+                  tag: 'book-${book.id}',
+                  child: Stack(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(right: 24),
+                        width: 64,
+                        height: 98,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),                        
+                          border: Border.all(color: AppColors.grey),
+                        ),
+                        child: Image(image: AssetImage("assets/logo.png"), width: 170,)
+                      ),                    
+                      Container(
+                        margin: EdgeInsets.only(right: 24),
+                        width: 64,
+                        height: 98,
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
+                          image: DecorationImage(image: CachedNetworkImageProvider(item.picture), fit: BoxFit.cover),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -49,8 +72,11 @@ class BookWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          BookScreen.open(context, item, (){});
+                        onTap: () async {
+                          await BookScreen.open(context, item, (){});
+                          if (onAfter != null) {
+                            onAfter();
+                          }
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width - 200,
@@ -63,28 +89,44 @@ class BookWidget extends StatelessWidget {
                       Container(
                         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width - 200),
                         margin: EdgeInsets.only(top: 8),
-                        child: InkWell(
-                          onTap: () {
-                            CategoryScreen.open(context, item.genre, (){});
+                        child: Wrap(
+                          runSpacing: 5,
+                          spacing: 10,
+                          children: book.genres.map((genre) => InkWell(
+                          onTap: () async {
+                            await CategoryScreen.open(context, genre, (){});
+                            if (onAfter != null) {
+                              onAfter();
+                            }
                           },
-                          child: Text(item.genre != null? (item.genre.name ?? '') : '', style: TextStyle(
+                          child: Text(genre != null? (genre.name ?? '') : '', style: TextStyle(
                             color: AppColors.secondary,
                             fontSize: 14,
                           )),
+                        )).toList(),
                         ),
                       ),
                       Container(
                         constraints: BoxConstraints(maxWidth: 130),
                         margin: EdgeInsets.only(top: 8, bottom: 12),
-                        child: GestureDetector(
-                            child: Text(item.author.name + ' ' + item.author.surname, style: TextStyle(
-                                color: AppColors.grey,
-                                fontSize: 14,
-                              )
-                            ),
-                          onTap: (){
-                            AuthorScreen.open(context, item.author, (){});
-                          },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: book.authors.map((author) => Container(
+                            margin: EdgeInsets.only(bottom: 5),
+                            child: GestureDetector(
+                              child: Text((author.name + ' ' + author.surname).trim(), style: TextStyle(
+                                  color: AppColors.grey,
+                                  fontSize: 14,
+                                )
+                              ),
+                            onTap: () async {
+                              await AuthorScreen.open(context, author, (){});
+                              if (onAfter != null) {
+                                onAfter();
+                              }
+                            },
+                        ),
+                          )).toList(),
                         ),
                       ),
                       Divider(
@@ -101,9 +143,12 @@ class BookWidget extends StatelessWidget {
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
               ),
-              onPressed: () {
+              onPressed: () async {
                 print('Options - ' + item.id.toString());
-                BookOptionDialog.open(context, item, true);
+                await BookOptionDialog.open(context, item, true);
+                if (onAfter != null) {
+                  onAfter();
+                }
               },
               child: Icon(Icons.more_vert, color: AppColors.secondary),
             ),
@@ -113,6 +158,11 @@ class BookWidget extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
 
 
 class ReadingBookWidget extends StatelessWidget {
@@ -138,17 +188,23 @@ class ReadingBookWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
-                onTap: () {
-                  BookScreen.open(context, item, (){});
+                onTap: () async {
+                  await BookScreen.open(context, item, (){});
+                  if (onAfter != null) {
+                    onAfter();
+                  }
                 },
-                child: Container(
-                  margin: EdgeInsets.only(right: 24),
-                  width: 64,
-                  height: 98,
-                  decoration: BoxDecoration(
-                    color: AppColors.grey,
-                    borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
-                    image: DecorationImage(image: CachedNetworkImageProvider(item.picture), fit: BoxFit.cover),
+                child: Hero(
+                    tag: 'book-${book.id}',
+                    child: Container(
+                    margin: EdgeInsets.only(right: 24),
+                    width: 64,
+                    height: 98,
+                    decoration: BoxDecoration(
+                      color: AppColors.grey,
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
+                      image: DecorationImage(image: CachedNetworkImageProvider(item.picture), fit: BoxFit.cover),
+                    ),
                   ),
                 ),
               ),
@@ -157,8 +213,11 @@ class ReadingBookWidget extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          BookScreen.open(context, item, (){});
+                        onTap: () async {
+                          await BookScreen.open(context, item, (){});
+                          if (onAfter != null) {
+                            onAfter();
+                          }
                         },
                         child: Container(
                           width: MediaQuery.of(context).size.width - 170,
@@ -175,8 +234,11 @@ class ReadingBookWidget extends StatelessWidget {
                             color: AppColors.secondary,
                             fontSize: 14,
                           )),
-                          onTap: () {
-                            AuthorScreen.open(context, item.author, () {});
+                          onTap: () async  {
+                            await AuthorScreen.open(context, item.author, () {});
+                            if (onAfter != null) {
+                              onAfter();
+                            }
                           },
                         ),
                       ),
@@ -194,9 +256,12 @@ class ReadingBookWidget extends StatelessWidget {
           ),
           Container(
             child: GestureDetector(
-              onTap: () {
+              onTap: () async {
                 print('Options - ' + this.book.id.toString());
-                BookOptionDialog.open(context, item, false, showHideButton: true, after: onAfter);
+                await BookOptionDialog.open(context, item, false, showHideButton: true, after: onAfter);
+                if (onAfter != null) {
+                  onAfter();
+                }
               },
               child: Icon(Icons.more_vert),
             ),

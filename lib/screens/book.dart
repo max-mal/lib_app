@@ -4,8 +4,11 @@ import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/dialogs/subscriptionOffer.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/parts/book.dart';
+import 'package:flutter_app/parts/bottomNavBar.dart';
+import 'package:flutter_app/screens/category.dart';
 import 'package:flutter_app/screens/paymentDetails.dart';
 import 'package:flutter_app/screens/reader.dart';
+import 'package:flutter_app/screens/seq.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -26,8 +29,8 @@ class BookScreen extends StatefulWidget {
 
   _BookScreenState createState() => _BookScreenState();
 
-  static void open(context, Book book, Function goTo) {
-    Navigator.of(context).push(
+  static open(context, Book book, Function goTo) async {
+    await Navigator.of(context).push(
         TransparentRoute(builder: (BuildContext context) => BookScreen(goTo: goTo, book: book))
     );
   }
@@ -45,41 +48,10 @@ class _BookScreenState extends State<BookScreen> {
 
   Widget build(BuildContext context){
     return Scaffold(
-      bottomNavigationBar: Container( 
-        padding: EdgeInsets.all(5),
-        height: 50,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.grey))
-        ),        
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              margin: EdgeInsets.only(left: 20),
-              child: InkWell(
-                child: Icon(Icons.arrow_back, color: AppColors.grey),
-                onTap: (){
-                  Navigator.pop(context);
-                },
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.only(right: 20),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(widget.book.title, style: TextStyle(
-                    fontSize: 15,
-                    color: AppColors.grey,                  
-                  )),                
-                  Text(widget.book.author.name + ' ' + widget.book.author.surname,style: TextStyle(color: AppColors.secondary, fontSize: 12),),                  
-                ],
-              ),
-            )
-          ],
-        ),
-      ),
+      bottomNavigationBar: BottomNavBar(
+        title: widget.book.title,
+        subtitle: (widget.book.author?.name ?? '') + ' ' + (widget.book.author?.surname ?? ''),
+      ),      
       body: Container(
         child: SingleChildScrollView(
           child: Column(
@@ -94,15 +66,33 @@ class _BookScreenState extends State<BookScreen> {
                     margin: EdgeInsets.only(top: 80),
                     child: Row(
                       children: [
-                        Container(
-                          margin: EdgeInsets.only(left: 15),
-                          width: 170,
-                          height: 250,
-                          decoration: BoxDecoration(
-                            color: AppColors.grey,
-                            borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
-                            image: DecorationImage(image: CachedNetworkImageProvider(widget.book.picture), fit: BoxFit.cover),
-                            border: Border.all(color: AppColors.grey)
+                        Hero(
+                          tag: 'book-${widget.book.id}',
+                          child: Stack(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(left: 15),
+                                width: 170,
+                                height: 250,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),                                
+                                  border: Border.all(color: AppColors.grey)
+                                ),
+                                child: Image(image: AssetImage("assets/logo.png"), width: 170,)
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(left: 15),
+                                width: 170,
+                                height: 250,
+                                decoration: BoxDecoration(
+                                  color: Colors.transparent,
+                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(2), topRight: Radius.circular(6), bottomRight: Radius.circular(6), bottomLeft: Radius.circular(2)),
+                                  image: DecorationImage(image: CachedNetworkImageProvider(widget.book.picture), fit: BoxFit.cover),
+                                  border: Border.all(color: AppColors.grey)
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         Expanded(
@@ -120,7 +110,7 @@ class _BookScreenState extends State<BookScreen> {
                                   )),
                                   SizedBox(height: 10,),
                                   InkWell(
-                                    child: Text(widget.book.author.name + ' ' + widget.book.author.surname,style: TextStyle(color: AppColors.primary),),
+                                    child: Text((widget.book.author?.name ?? '') + ' ' + (widget.book.author?.surname ?? ''),style: TextStyle(color: AppColors.primary),),
                                     onTap: (){
                                       AuthorScreen.open(context, widget.book.author, null);
                                     },
@@ -141,7 +131,7 @@ class _BookScreenState extends State<BookScreen> {
                     right: 30,
                     child: InkWell(
                       child: Icon(Icons.more_vert, color: AppColors.secondary,),
-                      onTap: (){
+                      onTap: (){                        
                         BookOptionDialog.open(context, widget.book, false);
                       },
                     ),
@@ -168,7 +158,7 @@ class _BookScreenState extends State<BookScreen> {
     });
     snackBarContext = context;
 
-    if (serverApi.hasConnection) {
+    if (serverApi.hasConnection && widget.book.author!= null) {
       widget.book.author.getBooks().then((books) {
         setState(() {});
       });
@@ -177,7 +167,7 @@ class _BookScreenState extends State<BookScreen> {
 
   Widget fromAuthorBlock() {
 
-    if (widget.book.author.books.length == 0 || !serverApi.hasConnection) {
+    if ((widget.book.author?.books?? []).length == 0 || !serverApi.hasConnection) {
       return Container();
     }
 
@@ -228,7 +218,14 @@ class _BookScreenState extends State<BookScreen> {
         if (widget.book.currentChapter == null) {
           widget.book.currentChapter = 0;
         }
-        ReaderScreen.open(context, widget.book);
+        await ReaderScreen.open(context, widget.book);
+        setState(() {          
+        });
+      },
+      onLongPress: (){
+        showDialog(context: context, builder: (ctx) => AlertDialog(
+          content: Text(widget.book.id.toString()),
+        ));
       },
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(AppColors.secondary)
@@ -278,7 +275,7 @@ class _BookScreenState extends State<BookScreen> {
                     decoration: BoxDecoration(
                       border: Border(right: BorderSide(color: AppColors.grey))
                     ),
-                    child: Container(
+                    child: Container(                      
                       padding: EdgeInsets.all(5),
                       child: Column(
                         children: [
@@ -329,13 +326,39 @@ class _BookScreenState extends State<BookScreen> {
                   ),
                   child: Container(
                     padding: EdgeInsets.all(5),
-                    child: Column(                                
+                    child: Column(                         
                       children: [
-                        Text(widget.book.type != null ? widget.book.type.name : '-', style: TextStyle(
-                          color: AppColors.grey,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 19,
-                        ), textAlign: TextAlign.center,),
+                        InkWell(
+                          child: Text(widget.book.type != null ? widget.book.type.name : '-', style: TextStyle(
+                            color: AppColors.grey,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 19,
+                          ), textAlign: TextAlign.center,),
+                          onTap: (){
+                            if (widget.book.types.length == 1) {
+                              SeqScreen.open(context, widget.book.type, (){});
+                            } else if (widget.book.genres.length > 0) {
+                              showDialog(context: context, builder: (ctx) => AlertDialog(
+                                title: Text(widget.book.title),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: widget.book.types.map((type) => ElevatedButton(
+                                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
+                                    child: Text(type.name),
+                                    onPressed: (){
+                                      SeqScreen.open(context, type, (){});
+                                    },
+                                  )).toList(),
+                                ),
+                                actions: [
+                                  TextButton(child: Text('Отмена'), onPressed: (){
+                                    Navigator.pop(context);
+                                  })
+                                ],
+                              ));
+                            }
+                          }, 
+                        ),
                         Text('Серия', style: TextStyle(
                           color: AppColors.grey,
                           fontWeight: FontWeight.w400,
@@ -351,11 +374,37 @@ class _BookScreenState extends State<BookScreen> {
                   padding: EdgeInsets.all(5),
                     child: Column(
                       children: [
-                        Text(widget.book.genre != null? widget.book.genre.name : '-', style: TextStyle(
-                          color: AppColors.grey,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 27,
-                        )),
+                        InkWell(
+                          child: Text(widget.book.genre != null? widget.book.genre.name : '-', style: TextStyle(
+                            color: AppColors.grey,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 19,
+                          ),textAlign: TextAlign.center,),
+                          onTap: (){
+                            if (widget.book.genres.length == 1) {
+                              CategoryScreen.open(context, widget.book.genre, (){});
+                            } else if (widget.book.genres.length > 0) {
+                              showDialog(context: context, builder: (ctx) => AlertDialog(
+                                title: Text(widget.book.title),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: widget.book.genres.map((genre) => ElevatedButton(
+                                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
+                                    child: Text(genre.name),
+                                    onPressed: (){
+                                      CategoryScreen.open(context, genre, (){});
+                                    },
+                                  )).toList(),
+                                ),
+                                actions: [
+                                  TextButton(child: Text('Отмена'), onPressed: (){
+                                    Navigator.pop(context);
+                                  })
+                                ],
+                              ));
+                            }
+                          },                          
+                        ),
                         Text('Жанр', style: TextStyle(
                           color: AppColors.grey,
                           fontWeight: FontWeight.w400,

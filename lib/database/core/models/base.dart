@@ -135,6 +135,22 @@ class DatabaseModel {
 
   }
 
+  raw(String sql) async {
+    var database = await db.open();
+    var result = await database.rawQuery(sql);
+
+    List<dynamic> list = [];
+    for (var map in result) {
+      var model = this.constructModel();
+      model.isCreated = true;
+      model.loadFromMap(map);
+      await model.afterFetch();
+      list.add(model);
+    }
+
+    return list;
+  }
+
   first() async {
     var list = await this.find();
     if (list.length > 0) {

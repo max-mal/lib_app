@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/models/book.dart';
-import 'package:flutter_app/models/genre.dart';
+import 'package:flutter_app/models/type.dart';
 import 'package:flutter_app/parts/book.dart';
 import 'package:flutter_app/parts/bottomNavBar.dart';
 import 'package:flutter_app/parts/listMoreButton.dart';
@@ -8,29 +8,26 @@ import 'package:flutter_app/utils/transparent.dart';
 import '../colors.dart';
 import '../globals.dart';
 
-class CategoryScreen extends StatefulWidget {
+class SeqScreen extends StatefulWidget {
   final Function goTo;
-  final Genre genre;
+  final BookType seq;
 
-  const CategoryScreen({
+  const SeqScreen({
     Key key,
     this.goTo,
-    this.genre,
+    this.seq,
   }) : super(key: key);
 
-  _CategoryScreenState createState() => _CategoryScreenState();
+  SeqScreenState createState() => SeqScreenState();
 
-  static open(context, Genre category, Function goTo) async {
-    await Navigator.of(context).push(
-        TransparentRoute(builder: (BuildContext context) => CategoryScreen(goTo: goTo, genre: category))
+  static void open(context, BookType category, Function goTo) {
+    Navigator.of(context).push(
+        TransparentRoute(builder: (BuildContext context) => SeqScreen(goTo: goTo, seq: category))
     );
   }
 }
 
-class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAliveClientMixin {
-
-  @override
-  bool get wantKeepAlive => true;
+class SeqScreenState extends State<SeqScreen> {
 
   List<Book> books = [];
 
@@ -47,14 +44,14 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
   void initState() {
     super.initState();
     snackBarContext = context;
-    getRecommendations();
+    getBooks();
   }
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
       bottomNavigationBar: BottomNavBar(
-        title: widget.genre.name,        
+        title: widget.seq.name,        
       ),
       body: new SingleChildScrollView(
           child: Container(
@@ -64,7 +61,7 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
     );
   }
 
-  void getRecommendations({bool append = false}) async {
+  void getBooks({bool append = false}) async { 
     setState(() {
       if (!append) {
         books = [];
@@ -78,11 +75,11 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
     List<dynamic> list = [];
 
     if (isPopular) {
-      list = await serverApi.getGenreBooks(widget.genre, popular: true, page: page);
+      list = await serverApi.getSeqBooks(widget.seq.id, popular: true, page: page);
     }
 
     if (isLast) {
-      list = await serverApi.getGenreBooks(widget.genre, page: page);
+      list = await serverApi.getSeqBooks(widget.seq.id, page: page);
     }
 
     if (append) {
@@ -111,12 +108,6 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            child: Text(this.widget.genre.description ?? '', style: TextStyle(
-              color: AppColors.secondary,
-              fontSize: 14,
-            )),
-          ),
-          Container(
             margin: EdgeInsets.only(top: 20),
             child: Row(
               children: [
@@ -131,7 +122,7 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
                           showMoreButton = true;
                           page = 1;
                         });
-                        getRecommendations();
+                        getBooks();
                     },
                   ),
                 ),
@@ -145,7 +136,7 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
                           showMoreButton = true;
                           page = 1;
                         });
-                        getRecommendations();
+                        getBooks();
                       },
                   ),
                 )
@@ -189,7 +180,7 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
   }
 
   Widget moreButton() {
-
+    
     if (books.length < 10) {
       return Container();
     }
@@ -199,7 +190,7 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
       isMoreLoading: isMoreLoading,
       onMore: (){
         page += 1;
-        getRecommendations(append: true);
+        getBooks(append: true);
       },
       showMoreButton: showMoreButton,
     );

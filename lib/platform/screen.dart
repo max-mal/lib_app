@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/dialogs/navigation.dart';
+import 'package:flutter_app/dialogs/search.dart';
 import 'package:flutter_app/screens/collection.dart';
 import 'package:flutter_app/screens/news.dart';
 import 'package:flutter_app/screens/recomendations.dart';
@@ -41,21 +42,26 @@ class ScreenState extends State<AppScreen> {
         case 0:
           this.page = 'home';
           break;
+        // case 1:
+        //   this.page = 'recommendations';
+        //   break;
         case 1:
-          this.page = 'recommendations';
-          break;
-        case 2:
           NavigationDialog.open(context);
           break;
-        case 3:
+        case 2:
           this.page = 'account';
           break;
-        case 4:
+        case 3:
           this.page = 'collection';
           break;
-        case 5:
-          this.page = 'news';
+        case 4:
+          showDialog(context: context, builder: (ctx){
+            return SearchDialog();
+          });
           break;
+        // case 5:
+        //   this.page = 'news';
+        //   break;
       }
     });
   }
@@ -76,9 +82,9 @@ class ScreenState extends State<AppScreen> {
               items: [
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.home), label: 'Home'),
-                new BottomNavigationBarItem(
-                    icon: new Icon(Icons.short_text),
-                    label: 'Recommendations'),
+                // new BottomNavigationBarItem(
+                //     icon: new Icon(Icons.short_text),
+                //     label: 'Recommendations'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.category),
                     label: 'Categories'),
@@ -87,9 +93,11 @@ class ScreenState extends State<AppScreen> {
                     label: 'Account'),
                 new BottomNavigationBarItem(
                     icon: new Icon(Icons.list), label: 'Collection'),
+                // new BottomNavigationBarItem(
+                //     icon: new Icon(Icons.new_releases),
+                //     label: 'News'),
                 new BottomNavigationBarItem(
-                    icon: new Icon(Icons.new_releases),
-                    label: 'News'),
+                    icon: new Icon(Icons.search), label: 'Search'),
               ],
               currentIndex: this.navBarSelectedIndex,
               onTap: this.onNavBarTap,
@@ -110,7 +118,7 @@ class ScreenState extends State<AppScreen> {
       case 'account':
         setState(() {
           this.showTabs = true;
-          navBarSelectedIndex = 3;
+          navBarSelectedIndex = 2;
         });
         return new AccountScreen(goTo: this.goTo);
       case 'start':
@@ -154,7 +162,7 @@ class ScreenState extends State<AppScreen> {
       case 'collection':
         setState(() {
           this.showTabs = true;
-          navBarSelectedIndex = 4;
+          navBarSelectedIndex = 3;
         });
         return new CollectionScreen(goTo: this.goTo);
       case 'news':

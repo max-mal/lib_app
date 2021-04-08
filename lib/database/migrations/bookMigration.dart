@@ -76,3 +76,15 @@ class BookChapterMigration extends Migration {
     );
   }
 }
+
+class BookAuthorMigration extends Migration {
+  String name = "book_author_table_create";
+
+  void apply() async {
+    var database = await db.open();
+
+    database.execute(
+        "CREATE TABLE `book_author` ( `id`	INTEGER PRIMARY KEY AUTOINCREMENT, `bookId`	INTEGER, `authorId` INTEGER);"
+    );
+  }
+}

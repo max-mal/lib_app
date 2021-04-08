@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_app/parts/bottomNavBar.dart';
 import 'package:flutter_app/screens/category.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import '../globals.dart';
@@ -37,6 +38,9 @@ class NavigationDialogState extends State<NavigationDialog> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      bottomNavigationBar: BottomNavBar(
+        title: 'Жанры',
+      ),
         body: Container(          
           child: SingleChildScrollView(
             child: new Container(

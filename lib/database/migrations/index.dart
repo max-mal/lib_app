@@ -19,4 +19,5 @@ var migrations = [
   BookChapterMigration(),
   CollectionMigration(),
   CollectionBooksMigration(),
+  BookAuthorMigration(),
 ];

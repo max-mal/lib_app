@@ -27,16 +27,6 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
 
   List<Collection> collections = userCollections;
 
-  void getCollections()
-  {
-//    if (collections.isNotEmpty) {
-//      return;
-//    }
-//
-//    collections = Collection.generate(3);
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return new SingleChildScrollView(
@@ -54,8 +44,7 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
     );
   }
 
-  Widget collectionsList() {
-    this.getCollections();
+  Widget collectionsList() {    
     return ListView.separated(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
@@ -220,5 +209,26 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
     );
 
     flushbar..show(context);
+  }
+
+  @override
+  void initState(){
+    getCollections();
+    super.initState();
+  }
+
+  getCollections() async {
+    if (serverApi.hasConnection) {
+      serverApi.syncCollections();
+    }
+    userCollections = List<Collection>.from(await Collection().all());
+
+    for (Collection collection in userCollections) {
+      await collection.getBooks();
+    }
+    print(userCollections.toString());
+    setState((){
+      collections = userCollections;
+    });
   }
 }

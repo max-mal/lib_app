@@ -21,8 +21,8 @@ class BookOptionDialog extends StatefulWidget {
   @override
   BookOptionDialogState createState() => new BookOptionDialogState();
 
-  static void open(context, Book book, bool showTrash, {showHideButton = false, Function after}) {
-    Navigator.of(context).push(
+  static open(context, Book book, bool showTrash, {showHideButton = false, Function after}) async {
+    await Navigator.of(context).push(
         TransparentRoute(builder: (BuildContext context) => BookOptionDialog(book, showTrash, showHideButton: showHideButton, onAfter: after,))
     );
   }
@@ -127,10 +127,12 @@ class BookOptionDialogState extends State<BookOptionDialog> {
         ),
         TextButton(
           child: Text('Да'),
-          onPressed: () async {
+          onPressed: () async {            
             Navigator.pop(context);            
-            readingBooksHideIds.add(widget.book.id);
-            Preferences.set('readingBooksHideIds', readingBooksHideIds.join(','));
+            widget.book.progress = 0;
+            await widget.book.save();
+            serverApi.setProgress(widget.book);
+
             if (widget.onAfter != null) {
               widget.onAfter();
             }

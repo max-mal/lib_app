@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:faker/faker.dart';
 import 'package:flutter_app/database/core/models/base.dart';
+import 'package:flutter_app/models/bookAuthor.dart';
 import 'package:flutter_app/models/bookType.dart';
 import 'package:flutter_app/models/type.dart';
 import 'package:flutter_app/utils/convert.dart';
@@ -38,7 +39,8 @@ class Book extends DatabaseModel {
   String createdAt;
 
   Author author;
-  Genre genre;
+  List<Author> authors;
+  Genre genre;  
   BookType type;
 
   List<Genre> genres = [];
@@ -175,15 +177,15 @@ class Book extends DatabaseModel {
   getGenres() async {
     if (this.genres.length != 0) {
       return this.genres;
-    }
-    var bookGenres = await BookGenre().where('bookId = ?', [this.id.toString()]).find();
-
+    }    
+    var bookGenres = await BookGenre().where('bookId = ?', [this.id.toString()]).find();        
     for(BookGenre bookGenre in bookGenres) {
       Genre genre = await Genre().where('id = ?', [bookGenre.genreId]).first();
       if (genre != null) {
         this.genres.add(genre);
+        print("Genre: " + genre.name);
       }
-
+      
     }
     this.genre = this.genres.length > 0 ? this.genres.first : null;
     return this.genres;
@@ -208,7 +210,8 @@ class Book extends DatabaseModel {
 
   @override
   afterFetch() async {
-    await getAuthor();
+    // await getAuthor();
+    await getAuthors();
     await getGenres();
     await getTypes();
     return super.afterFetch();
@@ -255,7 +258,23 @@ class Book extends DatabaseModel {
     }
   }
 
+  getAuthors() async {
+    if (this.authors != null) {
+      return this.authors;
+    }
+    
+    this.authors = [];
 
+    for (var bookAuthor in await BookToAuthor().where('bookId = ?', [this.id.toString()]).find()) {
+      Author author = await Author().where('id = ?', [bookAuthor.authorId.toString()]).first();
+
+      if (author != null) {
+        this.authors.add(author);
+      }
+    }
+    this.author = this.authors.length > 0? this.authors.first: null;
+    return this.authors;
+  }
 
 
 }

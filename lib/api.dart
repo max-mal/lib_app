@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_app/models/bookAuthor.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 import 'database/core/models/preferences.dart';
+import 'database/init.dart';
 import 'globals.dart';
 import 'models/author.dart';
 import 'models/book.dart';
@@ -312,25 +314,42 @@ class ServerApi {
   }
 
   getGenreBooks(Genre genre, {bool popular = false, int page = 1}) async {
-    var response = await this.get('genre/books',
-        params: popular
-            ? [
-                '&popular=1',
-                'page=' + page.toString(),
-                'genre=' + genre.id.toString()
-              ]
-            : ['&genre=' + genre.id.toString(), 'page=' + page.toString()]);
 
-    if (response['ok'] != true) {
-      this.getError(response, showSnackbar: true);
-      return [];
+    if (hasConnection) {
+      var response = await this.get('genre/books',
+          params: popular
+              ? [
+                  '&popular=1',
+                  'page=' + page.toString(),
+                  'genre=' + genre.id.toString()
+                ]
+              : ['&genre=' + genre.id.toString(), 'page=' + page.toString()]);
+
+      if (response['ok'] != true) {
+        this.getError(response, showSnackbar: true);
+        return [];
+      }
+      List<Book> list = [];
+      for (var responseBook in response['books']) {
+        list.add(await syncBooks(responseBook));
+      }
+
+      return list;
     }
-    List<Book> list = [];
-    for (var responseBook in response['books']) {
-      list.add(await syncBooks(responseBook));
+    
+    var books = await Book().raw("SELECT books.* FROM books inner join book_genre on book_genre.bookId = books.id where book_genre.genreId = ${genre.id} order by ${popular? "rate desc" : "date(createdAt) desc"} limit 10 offset ${(page - 1) * 10};");
+
+    return List<Book>.from(books);
+  }
+
+  getSeqBooks(int seqId, {bool popular = false, int page = 1}) async {
+        
+    if (hasConnection) {
+      return await this.getBooks(seq: seqId.toString(), popular: popular, page: page);
     }
 
-    return list;
+    var books = await Book().raw("SELECT books.* FROM books inner join book_to_type on book_to_type.bookId = books.id where book_to_type.typeId = $seqId order by ${popular? "rate desc" : "date(createdAt) desc"} limit 10 offset ${(page - 1) * 10};");
+    return List<Book>.from(books);
   }
 
   getBooks(
@@ -339,6 +358,7 @@ class ServerApi {
       popular: false,
       page: 1,
       query: '',
+      seq: '',
       reading: ''}) async {
     var response = await this.get('books/list', params: [
       '&authors=' + authors,
@@ -346,6 +366,7 @@ class ServerApi {
       'query=' + query,
       'genres=' + genres,
       'page=' + page.toString(),
+      'seq=' + seq.toString(),
       'popular=' + (popular ? '1' : '')
     ]);
     if (response['ok'] != true) {
@@ -418,9 +439,32 @@ class ServerApi {
     if (book.progress != null &&
         book.progress > toInt(responseBook['progress'])) {
       await setProgress(book);
+      responseBook['progress'] = book.progress;
     }
     book.loadFromResponse(responseBook);
     await book.save();
+
+    for(dynamic bookAuthor in responseBook['authors']) {
+      BookToAuthor bookAuthorModel = await BookToAuthor().where('bookId = ? and authorId = ?', [
+        book.id.toString(), bookAuthor['AvtorId'].toString()
+      ]).first();
+
+      if (bookAuthorModel != null) {
+        continue;
+      }
+
+      bookAuthorModel = new BookToAuthor();
+      bookAuthorModel.bookId = book.id;
+      bookAuthorModel.authorId = toInt(bookAuthor['AvtorId'].toString());
+      await bookAuthorModel.save();
+
+      Author author = await Author().where('id = ?', [bookAuthor['AvtorId'].toString()]).first();
+
+      if (author == null) {
+        await this.getAuthor(bookAuthorModel.authorId);
+      }
+    }
+
     await syncBookGenres(book, responseBook);
     await syncBookTypes(book, responseBook);
     await book.afterFetch();
@@ -443,7 +487,7 @@ class ServerApi {
 
     for (BookGenre bookGenre
         in await BookGenre().where('bookId = ?', [book.id]).find()) {
-      if (!responseBook['genres'].contains(bookGenre.genreId)) {
+      if (!responseBook['genres'].contains(bookGenre.genreId.toString())) {
         await bookGenre.remove();
       }
     }
@@ -523,7 +567,7 @@ class ServerApi {
     });
     if (response['ok'] != true) {
       print(response.toString());
-      this.getError(response, showSnackbar: true);
+      // this.getError(response, showSnackbar: true);
       return null;
     }
   }

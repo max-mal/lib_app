@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:share/share.dart';
@@ -24,7 +25,12 @@ class CollectionShareDialog extends StatefulWidget {
 class CollectionShareDialogState extends State<CollectionShareDialog> {
 
   void _share() {
-    Share.share(widget.collection.name + ' https://openlibrary.org', subject: widget.collection.name);
+    String text = "Коллекция: ${widget.collection.name}\n\n";
+    for (Book book in widget.collection.books) {
+      text += "${book.author?.name ?? '' } ${book.author?.surname ?? '' } - ${book.title}\n";
+    }
+
+    Share.share(text, subject: widget.collection.name);
     Navigator.pop(context);
   }
 
@@ -57,11 +63,11 @@ class CollectionShareDialogState extends State<CollectionShareDialog> {
                       child: ListView(
                         scrollDirection: Axis.horizontal,
                         children: [
-                          this.shareOption('Facebook', Colors.blue, Icons.face, () { _share(); }),
-                          this.shareOption('Gmail', Colors.red, Icons.mail, () { _share(); }),
-                          this.shareOption('Messenger', Colors.lightBlue, Icons.message, () { _share(); }),
-                          this.shareOption('Ссылка', Colors.red, Icons.content_copy, () { _share(); }),
-                          this.shareOption('Больше', AppColors.primary, Icons.more_vert, () { _share(); }),
+                          // this.shareOption('Facebook', Colors.blue, Icons.face, () { _share(); }),
+                          // this.shareOption('Gmail', Colors.red, Icons.mail, () { _share(); }),
+                          // this.shareOption('Messenger', Colors.lightBlue, Icons.message, () { _share(); }),
+                          // this.shareOption('Ссылка', Colors.red, Icons.content_copy, () { _share(); }),
+                          this.shareOption('Поделиться', AppColors.primary, Icons.more_vert, () { _share(); }),
 
                         ],
                       ),

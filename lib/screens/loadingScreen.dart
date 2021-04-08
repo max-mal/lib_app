@@ -4,9 +4,7 @@ import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
 import 'package:flutter_app/models/user.dart';
-import 'package:flutter_app/parts/svg.dart';
 import 'package:flutter_app/platform/screen.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:superellipse_shape/superellipse_shape.dart';
 
 import '../globals.dart';
@@ -84,10 +82,7 @@ class LoadingScreenState extends State<LoadingScreen>
               width: 150,
               height: 150,
               child: Center(
-                child: SvgPicture.string(
-                  SvgIcons.logo,
-                  width: 95,
-                ),
+                child: Image(image: AssetImage("assets/logo.png"), width: 95,)
               ),
             ),
           ),

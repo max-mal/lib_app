@@ -68,7 +68,7 @@ class Parser {
 
   Widget renderParagraph(var block)
   {
-    return Container(
+    return Container(      
       margin: EdgeInsets.symmetric(vertical: 5),
       child: parseText(block['data']['text'],)
     );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,7 @@ import 'package:flutter_app/utils/pageTurn.dart';
 import 'package:flutter_app/utils/parser.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:flutter_tts/flutter_tts.dart';
-
+import 'package:wakelock/wakelock.dart';
 
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import '../colors.dart';
@@ -29,8 +30,8 @@ class ReaderScreen extends StatefulWidget {
 
   ReaderScreen({Key key, this.book});
 
-  static void open(context, Book book) {
-    Navigator.of(context).push(
+  static open(context, Book book) async {
+    await Navigator.of(context).push(
         TransparentRoute(builder: (BuildContext context) => ReaderScreen(book: book))
     );
   }
@@ -89,11 +90,13 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   bool rendered = false;
   double readerHeight = 0;
-
+  int currentPage = 0;
   @override
   void initState()
   {
     super.initState();
+
+    Wakelock.enable(); 
     parser = new Parser();
     parser.context = context;
 
@@ -116,6 +119,14 @@ class ReaderScreenState extends State<ReaderScreen> {
 
       if (isPaged) {
         buildPages();
+        pagingController.addListener(() {
+          if (isPagesBuilt) {
+            currentPage = pagingController.page.toInt();
+            Preferences.set('book-' + widget.book.id.toString() + '-page', pagingController.page.toInt().toString());
+            // print('Turned page');
+            setState(() {});
+          }   
+        });
       }
 
       readingBooksHideIds.remove(widget.book.id);
@@ -129,8 +140,6 @@ class ReaderScreenState extends State<ReaderScreen> {
         return false;
       }
 
-
-
       widget.book.progress = ((widget.book.currentChapter + 1) /  widget.book.chapters.length * 100).toInt();
       widget.book.save();
 
@@ -138,10 +147,11 @@ class ReaderScreenState extends State<ReaderScreen> {
       if (isPaged) {
         if (isPagesBuilt) {
           Preferences.set('book-' + widget.book.id.toString() + '-page', pagingController.page.toInt().toString());
-        }
-        return false;
+        }        
+      } else {
+        Preferences.set('book-' + widget.book.id.toString() + '-scroll', scrollController.offset.toString());
       }
-      Preferences.set('book-' + widget.book.id.toString() + '-scroll', scrollController.offset.toString());
+      
     });
   }
 
@@ -234,6 +244,22 @@ class ReaderScreenState extends State<ReaderScreen> {
                 ),
               ),
             ),
+            isPaged && isPagesBuilt? Positioned(
+              bottom: -15,
+              left: 0,
+              right: 0,
+              child: Slider(
+                min: 0,                
+                value: currentPage.toDouble(),
+                max: chapterPages[widget.book.currentChapter] == null? 0: chapterPages[widget.book.currentChapter].length - 1.0,
+                // divisions: 1,
+                onChanged: (value){
+                  pagingController.jumpToPage(value.round());
+                  currentPage = value.round();
+                  setState(() {});
+                },
+              ),
+            ): Container(),
             showSettings? Container(child: this.settings()): Container(),
             showTts? Container(child: this.ttsSettings()): Container(),
           ],
@@ -243,6 +269,7 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   List<Widget> currentPageWidgets = [];
   List<List<Widget>> pages = [];
+  Map<int, List<List<Widget>>> chapterPages = {};
   GlobalKey buildColumnKey = GlobalKey();
   bool isPagesBuilt = false;
   bool canRead = false;
@@ -252,231 +279,265 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   waitUntilRender() async {
     rendered = false;
-    double initialHeight = getBuildHeight();
-    double currentHeight = getBuildHeight();
+    double initialHeight = await getBuildHeight();
+    double currentHeight = await getBuildHeight();
     setState((){});
     while(initialHeight == currentHeight) {
       await Future.delayed(Duration(milliseconds: 10));
-      currentHeight = getBuildHeight();
+      currentHeight = await getBuildHeight();
     }
 
-    return getBuildHeight();
+    return await getBuildHeight();
   }
 
-  getBuildHeight() {
+  getBuildHeight() async {
+    while(buildColumnKey.currentContext == null) {
+      // Do nothing...
+      await Future.delayed(Duration(milliseconds: 10));
+    }
     RenderBox rBox = buildColumnKey.currentContext.findRenderObject();
     Size size = rBox.size;
-//    print("SIZE of Red: $size");
-
     return size.height;
   }
 
-  buildPages() async {
+
+  double totalHeight;
+
+  chapterButton({bool prev = false}){
+
+    if (prev == true && widget.book.currentChapter == 0) {
+      return null;
+    }
+
+    if (prev == false && widget.book.currentChapter == widget.book.chapters.length - 1){
+      return null;
+    }
+
+    return Align(
+      alignment: Alignment.center,
+        child: Column(        
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Icon(prev? Icons.arrow_back: Icons.arrow_forward, color: AppColors.getColor('black'),),
+              SizedBox(width: 20),
+              Expanded(child: Text(widget.book.chapters[prev? (widget.book.currentChapter-1):(widget.book.currentChapter+1)].title, textAlign: TextAlign.center, style: TextStyle(color: AppColors.getColor('black'))))
+            ],
+          ),
+          SizedBox(height: 10),
+          TextButton(
+            style: ButtonStyle(
+              backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
+            ),              
+            onPressed: () {
+              setState((){
+                currentPage = 0;
+                if (prev) {
+                  widget.book.currentChapter = widget.book.currentChapter - 1;
+                } else {
+                  widget.book.currentChapter = widget.book.currentChapter + 1;
+                }
+                if (isPaged) {
+                  buildPages();
+                  jumpedBack = prev;
+                }
+                loadTtsChapter();
+              });
+            },
+            child: Text(prev? 'Назад': 'Далее', style: TextStyle(color: Colors.white))
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool jumpedBack = false;
+
+  buildPages({int chapter = -1}) async {
+    if (chapter == -1) {
+      chapter = widget.book.currentChapter;
+    }
     readerHeight = MediaQuery.of(context).size.height - 145;
-    String response = await widget.book.chapters[widget.book.currentChapter].getContents();
+    String response = await widget.book.chapters[chapter].getContents();
     var json = jsonDecode(response);
 
     pages = [];
     currentPageWidgets = [];
     isPagesBuilt = false;
-    double totalHeight = 0;
+    totalHeight = 0;
     setState((){});
 
-    if (widget.book.currentChapter > 0) {
-      currentPageWidgets.add(
-        Align(
-          alignment: Alignment.center,
-          child: TextButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
-              ),              
-              onPressed: () {
-                setState((){
-                  widget.book.currentChapter = widget.book.currentChapter - 1;
-                  buildPages();
-                  loadTtsChapter();
-                });
-              },
-              child: Text('Назад', style: TextStyle(color: Colors.white))
-          ),
-        )
-      );
-      totalHeight = 40;
+    if (chapterPages[chapter] == null) {
+      Widget chapterButtonWidget = chapterButton(prev: true);
+      if (chapterButtonWidget != null) {
+        pages.add([chapterButtonWidget]);
+      }
+
+      for (var block in json['blocks']) {    
+        await addBlock(block);
+        setState((){});      
+      }
+
+      if (currentPageWidgets.length !=0 ) {
+        pages.add(List<Widget>.from(currentPageWidgets));
+      }
+
+      isPagesBuilt = true;
+
+      Widget chapterNextButtonWidget = chapterButton(prev: false);
+      if (chapterNextButtonWidget != null) {
+        pages.add([chapterNextButtonWidget]);
+      }
+
+      chapterPages[chapter] = pages;
     }
-
-
-    RenderBox rBox = buildColumnKey.currentContext.findRenderObject();
-    Size size = rBox.size;
-    print("[BeforeBuild] SIZE: ${size.height}");
-
-    int jumpTo;
+    
+    setState((){});
 
     if (initialLaunch && widget.book.progress > 0) {
-      int page = int.parse((await Preferences.get('book-' + widget.book.id.toString() + '-page')) ?? '1');
+      int page = int.parse((await Preferences.get('book-' + widget.book.id.toString() + '-page')) ?? '2');
       Future.delayed(Duration(seconds: 1), (){
         print('NEED Jump to page ' + page.toString());
-        jumpTo = page;
+        pagingController.jumpToPage(page);        
         initialLaunch = false;
-      });
+        currentPage = page;
+      });      
     }
 
+    if (jumpedBack == true) {
+      // Future.delayed(Duration(seconds: 1), (){
+        pagingController.jumpToPage(chapterPages[chapter].length - 2);   
+        jumpedBack = false;     
+        currentPage = chapterPages[chapter].length - 2;
+      // });
+    } else if (initialLaunch == false && chapter > 0) {
+      pagingController.jumpToPage(1);   
+      currentPage = 1;
+    }  
 
-    for (var block in json['blocks']) {
-      bool isText = false;
-      bool isImage = false;
-      Widget c;
-      switch (block['type']) {
-        case 'header':
-         c = this.parser.renderHeader(block);
-          break;
-        case 'paragraph':
-          c = this.parser.renderParagraph(block);
-          isText = true;
-          break;
-        case 'list':
-          c = this.parser.renderList(block);
-          break;
-        case 'image':
-          c = this.parser.renderImage(block);
-          isImage = true;
-          break;
-        case 'delimiter':
-          c = this.parser.renderDivider(block);
-          break;
-        default:
-          print ('Unknown block: ' + block['type']);
-          break;
-      }
+    setState(() {
 
-      if (measureWidget != null) {
-        measureWidget = null;
-        await waitUntilRender();
-      }
-
-      currentPageWidgets.add(c);
-      measureWidget = c;
-      await waitUntilRender();
-
-      RenderBox rBox = buildColumnKey.currentContext.findRenderObject();
-      Size size = rBox.size;
-      print("SIZE: $size");
-
-      if (isImage) {
-        size = Size.fromHeight(320);
-      }
-
-
-      print("H: $totalHeight / $readerHeight");
-      if (totalHeight + size.height > readerHeight) {
-
-
-        List<Widget> nextPageWidgets = [];
-
-        if (isText && readerHeight - totalHeight > 50) {
-          List<String> parts = block['data']['text'].toString().split(' ');
-
-          c = this.parser.renderParagraph({'data': {'text': parts.sublist(0, parts.length ~/2 ).join(' ')}});
-          Size s = await measure(c);
-
-          int sIndex;
-
-          if (totalHeight + s.height > readerHeight) {
-            for(int i=parts.length ~/2; i > 2; i-=2) {
-              c = this.parser.renderParagraph({'data': {'text': parts.sublist(0, i).join(' ')}});
-              Size s = await measure(c);
-
-              if (totalHeight + s.height <= readerHeight) {
-                sIndex = i;
-                break;
-              }
-            }
-          } else {
-            for(int i=parts.length ~/2; i < parts.length -1; i+=2) {
-              c = this.parser.renderParagraph({'data': {'text': parts.sublist(0, i).join(' ')}});
-              Size s = await measure(c);
-
-              if (totalHeight + s.height >= readerHeight) {
-                sIndex = i - 2;
-                break;
-              }
-            }
-          }
-
-          if (sIndex != null) {
-            c = this.parser.renderParagraph({'data': {'text': parts.sublist(0, sIndex).join(' ')}});
-            currentPageWidgets.removeLast();
-            currentPageWidgets.add(c);
-            pages.add(List<Widget>.from(currentPageWidgets));
-            c = this.parser.renderParagraph({'data': {'text': parts.sublist(sIndex).join(' ')}});
-            nextPageWidgets.add(c);
-            Size s = await measure(c);
-            totalHeight = s.height;
-            currentPageWidgets = List<Widget>.from(nextPageWidgets);
-            print('Page ended!');
-//            break;
-          } else {
-            nextPageWidgets.add(currentPageWidgets.last);
-            currentPageWidgets.removeLast();
-            pages.add(List<Widget>.from(currentPageWidgets));
-            currentPageWidgets = List<Widget>.from(nextPageWidgets);
-            print('Page ended!');
-            totalHeight = size.height;
-          }
-
-        } else {
-          nextPageWidgets.add(currentPageWidgets.last);
-          currentPageWidgets.removeLast();
-          pages.add(List<Widget>.from(currentPageWidgets));
-          currentPageWidgets = List<Widget>.from(nextPageWidgets);
-          print('Page ended!');
-          totalHeight = size.height;
-        }
-
-        if (jumpTo != null && pages.length > jumpTo) {
-          pagingController.jumpToPage(jumpTo);
-          jumpTo = null;
-        }
-
-      } else {
-        totalHeight += size.height;
-      }
-
-    }
-
-    if (currentPageWidgets.length !=0 ) {
-      pages.add(List<Widget>.from(currentPageWidgets));
-    }
-
-    isPagesBuilt = true;
-
-    if (widget.book.currentChapter <  widget.book.chapters.length - 1) {
-      pages.add([
-        Align(
-          alignment: Alignment.center,
-          child: TextButton(
-              style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(AppColors.getColor('secondary'))
-              ), 
-              onPressed: () {
-                setState((){
-                  widget.book.currentChapter = widget.book.currentChapter + 1;
-                  buildPages();
-                  loadTtsChapter();
-                });
-              },
-              child: Text('Вперед', style: TextStyle(color: Colors.white))
-          ),
-        )
-      ]);
-    }
-
-
-    setState((){});
-
-
+    });
   }
 
-  measure(c) async {
+  addBlock(block) async {
+    double measuredHeight;
+    bool isText = false;
+    bool isImage = false;
+    Widget c;
+    switch (block['type']) {
+      case 'header':
+      c = this.parser.renderHeader(block);
+        break;
+      case 'paragraph':
+        c = this.parser.renderParagraph(block);
+        isText = true; 
+        break;
+      case 'list':
+        c = this.parser.renderList(block);
+        break;
+      case 'image':
+        c = this.parser.renderImage(block);
+        isImage = true;
+        break;
+      case 'delimiter':
+        c = this.parser.renderDivider(block);
+        break;
+      default:
+        print ('Unknown block: ' + block['type']);
+        break;
+    }
+    
+    if (isText) {
+      measuredHeight = measureText(block['data']['text']);
+    } else {        
+      measuredHeight = (await measure(c)).height;      
+    }      
+
+    currentPageWidgets.add(c);      
+
+    if (isImage && measuredHeight < 50) {
+      measuredHeight = 320;
+    }
+    
+    if (totalHeight + measuredHeight > readerHeight) {
+      // Если есть переполнение
+      if (isText) {
+        // и это текст
+        List<String> parts = block['data']['text'].toString().split(' ');
+        bool fits = false;
+        int currentTestIndex = parts.length - 1;
+
+        double freeSpace = readerHeight - totalHeight; // Нужно уложиться в это место
+        // print('FREE: $freeSpace');
+        while (!fits && currentTestIndex > 0) {
+          currentTestIndex --;
+          String testText = parts.sublist(0, currentTestIndex).join(' ');
+          double testHeight = measureText(testText);
+          if (testHeight < freeSpace) {
+            fits = true; // Влазит
+          }
+        }
+        
+        if (fits) { // Если влазит, добавляем на страницу
+          Widget testWidget = this.parser.renderParagraph({'data': {'text': parts.sublist(0, currentTestIndex).join(' ')}});
+          currentPageWidgets.removeLast();
+          currentPageWidgets.add(testWidget);
+
+          pages.add(List<Widget>.from(currentPageWidgets));
+          totalHeight = 0;
+          currentPageWidgets = [];
+          // print('Page Ended!');
+          // А теперь надо добавить остаток на другую страницу
+          
+          await addBlock({
+            'data': {'text': parts.sublist(currentTestIndex).join(' ')},
+            'type': 'paragraph',
+          });
+          
+        } else { // Нифига не влазит - на след. страницу
+          currentPageWidgets.removeLast();
+          pages.add(List<Widget>.from(currentPageWidgets));
+          totalHeight = 0;
+          currentPageWidgets = [];
+          // print('Page ended!');
+
+          await addBlock({
+            'data': {'text': parts.join(' ')},
+            'type': 'paragraph',
+          });              
+        } 
+
+      } else {
+        // и это не текст. добавим на след. страницу            
+        currentPageWidgets.removeLast();
+        pages.add(List<Widget>.from(currentPageWidgets));
+        currentPageWidgets = List<Widget>.from([c]);
+        // print('Page ended!');            
+        totalHeight = measuredHeight;
+      }
+    } else {
+      // Все влазит
+      totalHeight += measuredHeight;
+    }
+  }
+
+  double measureText(String text) {
+    ParagraphBuilder pBuilder = ParagraphBuilder(ParagraphStyle(
+      fontSize: editorSmallText? 16: 20,          
+      fontFamily: readerFontFamily
+    ));
+
+    pBuilder.addText(text);    
+    Paragraph p = pBuilder.build();
+    p.layout(ParagraphConstraints(width: MediaQuery.of(context).size.width - 50));
+    // print('Computed - ${p.height}');
+    return p.height + 10;
+  }
+
+  Future<Size> measure(c) async {
     if (measureWidget != null) {
       measureWidget = null;
       await waitUntilRender();
@@ -494,9 +555,22 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   readerBodyPaged() {
 
-      return PageView(
-        controller: pagingController,
-        children: pages.map((e) => Container(
+    if (downloadingBook) {
+      return downloadingBookMessage();
+    }
+
+    if (widget.book.chapters.length == 0) {
+      return bookUnavailableMessage();
+    }
+
+    if (chapterPages[widget.book.currentChapter] == null ) {
+      return Center(
+        child: Text('Построение страниц... ${pages.length}', style: TextStyle(color: AppColors.getColor('black')),),
+      );
+    }
+    return PageView(
+      controller: pagingController,
+      children: chapterPages[widget.book.currentChapter].map((e) => Container(
           width: MediaQuery.of(context).size.width,
           padding: EdgeInsets.only(right: 25, left: 25),
           child: Column(
@@ -505,41 +579,49 @@ class ReaderScreenState extends State<ReaderScreen> {
             children: e,
           ),
         )).toList(),
-      );
+    );
+  }
+
+  downloadingBookMessage(){
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(child: CircularProgressIndicator(), margin: EdgeInsets.only(right: 20),),
+            Text('Загрузка книги...', style: TextStyle(color: AppColors.getColor('black'))),
+          ]
+        ),
+        Container(
+          margin: EdgeInsets.only(top: 20),
+          child: Text(bookDownloadStatus, style: TextStyle(color: AppColors.getColor('black'))),
+        )
+      ],
+    );
+  }
+
+  bookUnavailableMessage() {
+    return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(child: Icon(Icons.error, color: AppColors.secondary), margin: EdgeInsets.only(right: 20),),
+          Text('Ошибка. Книга недоступна', style: TextStyle(color: AppColors.getColor('black'))),
+        ]
+    );
   }
 
   readerBody() {
 
     if (downloadingBook) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(child: CircularProgressIndicator(), margin: EdgeInsets.only(right: 20),),
-              Text('Загрузка книги...', style: TextStyle(color: AppColors.getColor('black'))),
-            ]
-          ),
-          Container(
-            margin: EdgeInsets.only(top: 20),
-            child: Text(bookDownloadStatus, style: TextStyle(color: AppColors.getColor('black'))),
-          )
-        ],
-      );
+      return downloadingBookMessage();
     }
 
     if (widget.book.chapters.length == 0) {
-      return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Container(child: Icon(Icons.error, color: AppColors.secondary), margin: EdgeInsets.only(right: 20),),
-            Text('Ошибка. Книга недоступна', style: TextStyle(color: AppColors.getColor('black'))),
-          ]
-      );
+      return bookUnavailableMessage();
     }
 
     this.getChapterBody(widget.book.currentChapter);
@@ -733,18 +815,12 @@ class ReaderScreenState extends State<ReaderScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 10),
                 child: DropdownButton(
                     dropdownColor: AppColors.getColor('white'),
-                    items: ttsVoices.map((e) => DropdownMenuItem(child: Container(constraints: BoxConstraints(maxWidth: 130),child: Text(e.toString(), overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.getColor('black')))), value: e,)).toList(),
-                    value: ttsVoice,
-                    onChanged: (value) async {
-                      if (value == 'По умолчанию') {
-                        return;
-                      }
-                      setState((){
-                        ttsVoices.remove('По умолчанию');
-                        ttsVoice = value;
-                      });
-
-                      await flutterTts.setVoice(ttsVoice);
+                    items: ttsVoices.map((e) => DropdownMenuItem(child: Container(constraints: BoxConstraints(maxWidth: 130),child: Text('${e['locale']} ${e['name']}', overflow: TextOverflow.ellipsis, style: TextStyle(color: AppColors.getColor('black')))), value: e,)).toList(),
+                    value: ttsVoice == null? null: ttsVoices[ttsVoice],
+                    onChanged: (value) async {      
+                      ttsVoice = ttsVoices.indexOf(value);
+                      setState(() {});
+                      await flutterTts.setVoice(value);
                       if (ttsState == TtsState.playing) {
                         await _pause();
                         await readByItem();
@@ -766,6 +842,8 @@ class ReaderScreenState extends State<ReaderScreen> {
     savePreferences();
     setState((){
       builtChapterBody = {};
+      chapterPages = {};
+      isPagesBuilt = false;
       initialLaunch = true;
     });
 
@@ -973,6 +1051,7 @@ class ReaderScreenState extends State<ReaderScreen> {
     if (flutterTts != null) {
       flutterTts.stop();
     }
+    Wakelock.disable();
     super.dispose();
   }
 
@@ -995,8 +1074,8 @@ class ReaderScreenState extends State<ReaderScreen> {
 
   var ttsState;
   String ttsLanguage = 'ru-RU';
-  dynamic ttsVoice = 'По умолчанию';
-  List<dynamic> ttsVoices = ['По умолчанию'];
+  int ttsVoice;
+  List<dynamic> ttsVoices = [];
 
   initTts() async {
     if (flutterTts != null) {
@@ -1019,6 +1098,7 @@ class ReaderScreenState extends State<ReaderScreen> {
 //    await flutterTts.setSilence(2);
 
     var voices = await flutterTts.getVoices;
+    print(voices);
 
     for (var voice in voices) {
       if (voice.toString().indexOf(ttsLanguage.toLowerCase()) != -1) {
@@ -1027,7 +1107,7 @@ class ReaderScreenState extends State<ReaderScreen> {
     }
 
     if (ttsVoice != null) {
-      flutterTts.setVoice(ttsVoice);
+      flutterTts.setVoice(ttsVoices[ttsVoice]);
     }
 
     await loadTtsChapter();

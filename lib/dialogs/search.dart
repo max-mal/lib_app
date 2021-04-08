@@ -140,7 +140,7 @@ class SearchDialogState extends State<SearchDialog> {
 
             SearchResult result = history[index -1];
 
-            return GestureDetector(
+            return InkWell(
               onTap: (){
                 if (result.type == 'author') {
                   AuthorScreen.open(context, result.author, (){});
@@ -150,7 +150,7 @@ class SearchDialogState extends State<SearchDialog> {
                 }
               },
               child: Container(
-                margin: EdgeInsets.only(top: 15),
+                padding: EdgeInsets.only(top: 15),
 //              padding: EdgeInsets.only(bottom: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
