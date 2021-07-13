@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 
 showCupertinoModal(BuildContext context,
-    {Widget child, bool dismissable = false}) {
+    {Widget child, bool dismissable = false, Function builder}) {
   showCupertinoModalBottomSheet(
     context: context,
     isDismissible: dismissable,
@@ -28,7 +28,7 @@ showCupertinoModal(BuildContext context,
           Expanded(
               child: SingleChildScrollView(
                   child: Card(
-            child: child,
+            child: builder != null? builder(context): child,
             shadowColor: Colors.transparent,
           )))
         ],

@@ -108,6 +108,7 @@ class _PaymentCheckoutScreenState extends State<PaymentCheckoutScreen>  {
                         margin: EdgeInsets.only(top: 50),
                         child: RawMaterialButton(
                           child: Center(child: Text('Купить через ApplePay', style: TextStyle(fontSize: 14, color: AppColors.getColor('black')),),),
+                          onPressed: (){},
                         ),
                       )
                     ],

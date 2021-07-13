@@ -3,12 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/dialogs/subscriptionOffer.dart';
 import 'package:flutter_app/models/book.dart';
+import 'package:flutter_app/models/bookReview.dart';
 import 'package:flutter_app/parts/book.dart';
 import 'package:flutter_app/parts/bottomNavBar.dart';
+import 'package:flutter_app/screens/areader.dart';
 import 'package:flutter_app/screens/category.dart';
 import 'package:flutter_app/screens/paymentDetails.dart';
+import 'package:flutter_app/screens/profile.dart';
 import 'package:flutter_app/screens/reader.dart';
 import 'package:flutter_app/screens/seq.dart';
+import 'package:flutter_app/ui/button.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -44,6 +48,7 @@ class _BookScreenState extends State<BookScreen> {
   List<Book> books = [];
 
   int currentTab = 0;
+  bool showAllReviews = false;
 
 
   Widget build(BuildContext context){
@@ -141,6 +146,7 @@ class _BookScreenState extends State<BookScreen> {
 
               bookInfo(),
               bookAbout(),   
+              reviews(),
               fromAuthorBlock()         
             ],
           ),
@@ -163,6 +169,57 @@ class _BookScreenState extends State<BookScreen> {
         setState(() {});
       });
     }
+
+    widget.book.getReviews().then((_){
+      setState(() {});
+    });
+  }
+
+  Widget reviews() {
+    if (widget.book.reviews == null) {
+      return Container();
+    }
+
+    return Container(
+      padding: EdgeInsets.all(15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Отзывы', style: TextStyle(fontSize: 16, color: AppColors.secondary)),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: showAllReviews? widget.book.reviews.length: (widget.book.reviews.length < 2? widget.book.reviews.length : 2),
+            itemBuilder: (_, int index) {
+              BookReview review = widget.book.reviews[index];
+              return Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(review.username + ':'),
+                    SizedBox(height: 10,),
+                    Text(review.text.replaceAll('\\"', '"'), style: TextStyle(color: AppColors.grey)),
+                    SizedBox(height: 10,),
+                    Align(alignment: Alignment.centerRight, child: Text(review.time, textAlign: TextAlign.right, style: TextStyle(color: AppColors.grey, fontStyle: FontStyle.italic))),
+                    Divider(color: AppColors.secondary,)
+                  ],
+                ),
+              );
+            }
+          ),
+          widget.book.reviews.length > 2? Container(
+            child: TextButton(
+              child: Text(!showAllReviews? 'Еще отзывы': 'Скрыть', style: TextStyle(color: AppColors.secondary)),
+              onPressed: (){
+                setState(() {
+                  showAllReviews = !showAllReviews;
+                });
+              },
+            ),
+          ): Container()
+        ],
+      ),
+    );
   }
 
   Widget fromAuthorBlock() {
@@ -218,14 +275,16 @@ class _BookScreenState extends State<BookScreen> {
         if (widget.book.currentChapter == null) {
           widget.book.currentChapter = 0;
         }
-        await ReaderScreen.open(context, widget.book);
-        setState(() {          
-        });
+        // await ReaderScreen.open(context, widget.book);
+        await showDialog(context: context, builder: (ctx) => AReaderScreeen(book: widget.book,));
+        setState(() {});
       },
-      onLongPress: (){
-        showDialog(context: context, builder: (ctx) => AlertDialog(
-          content: Text(widget.book.id.toString()),
-        ));
+      onLongPress: () async {
+        if (widget.book.currentChapter == null) {
+          widget.book.currentChapter = 0;
+        }
+        await ReaderScreen.open(context, widget.book);
+        setState(() {});
       },
       style: ButtonStyle(
         backgroundColor: MaterialStateProperty.all(AppColors.secondary)
@@ -337,25 +396,44 @@ class _BookScreenState extends State<BookScreen> {
                           onTap: (){
                             if (widget.book.types.length == 1) {
                               SeqScreen.open(context, widget.book.type, (){});
-                            } else if (widget.book.genres.length > 0) {
-                              showDialog(context: context, builder: (ctx) => AlertDialog(
-                                title: Text(widget.book.title),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: widget.book.types.map((type) => ElevatedButton(
-                                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
-                                    child: Text(type.name),
-                                    onPressed: (){
-                                      SeqScreen.open(context, type, (){});
-                                    },
-                                  )).toList(),
-                                ),
-                                actions: [
-                                  TextButton(child: Text('Отмена'), onPressed: (){
-                                    Navigator.pop(context);
-                                  })
-                                ],
-                              ));
+                            } else if (widget.book.genres.length > 0) {                              
+                              showFloatingModalBottomSheet(
+                                context: context,
+                                builder: (_){
+                                  return Container(
+                                    padding: EdgeInsets.all(10),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Column(                                    
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: widget.book.types.map((type) => UiButton(   
+                                            backgroundColor: Colors.white,
+                                            borderColor: AppColors.grey, 
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(type.name, style: TextStyle(color: AppColors.grey), textAlign: TextAlign.center),
+                                            onPressed: (){
+                                              Navigator.pop(context);
+                                              SeqScreen.open(context, type, (){});
+                                            },
+                                          )).toList(),
+                                        ),
+                                        Divider(color: AppColors.secondary),
+                                        SizedBox(height: 24),
+                                        UiButton(   
+                                          backgroundColor: Colors.white,
+                                          borderColor: AppColors.secondary, 
+                                          padding: EdgeInsets.all(5),
+                                          child: Text('Отмена', style: TextStyle(color: AppColors.secondary)),
+                                          onPressed: (){
+                                            Navigator.pop(context);
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }
+                              );
                             }
                           }, 
                         ),
@@ -383,25 +461,44 @@ class _BookScreenState extends State<BookScreen> {
                           onTap: (){
                             if (widget.book.genres.length == 1) {
                               CategoryScreen.open(context, widget.book.genre, (){});
-                            } else if (widget.book.genres.length > 0) {
-                              showDialog(context: context, builder: (ctx) => AlertDialog(
-                                title: Text(widget.book.title),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: widget.book.genres.map((genre) => ElevatedButton(
-                                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.grey)),
-                                    child: Text(genre.name),
-                                    onPressed: (){
-                                      CategoryScreen.open(context, genre, (){});
-                                    },
-                                  )).toList(),
-                                ),
-                                actions: [
-                                  TextButton(child: Text('Отмена'), onPressed: (){
-                                    Navigator.pop(context);
-                                  })
-                                ],
-                              ));
+                            } else if (widget.book.genres.length > 0) {                              
+                              showFloatingModalBottomSheet(
+                                context: context,
+                                builder: (_){
+                                  return Container(
+                                    padding: EdgeInsets.all(10),
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Column(                                    
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: widget.book.genres.map((genre) => UiButton(   
+                                            backgroundColor: Colors.white,
+                                            borderColor: AppColors.grey, 
+                                            padding: EdgeInsets.all(5),
+                                            child: Text(genre.name, style: TextStyle(color: AppColors.grey), textAlign: TextAlign.center),
+                                            onPressed: (){
+                                              Navigator.pop(context);
+                                              CategoryScreen.open(context, genre, (){});
+                                            },
+                                          )).toList(),
+                                        ),
+                                        Divider(color: AppColors.secondary),
+                                        SizedBox(height: 24),
+                                        UiButton(   
+                                          backgroundColor: Colors.white,
+                                          borderColor: AppColors.secondary, 
+                                          padding: EdgeInsets.all(5),
+                                          child: Text('Отмена', style: TextStyle(color: AppColors.secondary)),
+                                          onPressed: (){
+                                            Navigator.pop(context);
+                                          },
+                                        )
+                                      ],
+                                    ),
+                                  );
+                                }
+                              );                        
                             }
                           },                          
                         ),

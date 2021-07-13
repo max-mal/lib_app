@@ -113,4 +113,8 @@ class Author extends DatabaseModel {
 
   }
 
+  getDeepLink() {
+    return serverApi.getServerUrl() + '/link/author/${this.id}';
+  }
+
 }

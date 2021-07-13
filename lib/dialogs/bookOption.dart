@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/database/core/models/preferences.dart';
 import 'package:flutter_app/dialogs/shareBook.dart';
 import 'package:flutter_app/models/book.dart';
+import 'package:flutter_app/screens/profile.dart';
+import 'package:flutter_app/ui/loader.dart';
 import 'package:flutter_app/utils/transparent.dart';
 
 import '../colors.dart';
@@ -22,72 +23,81 @@ class BookOptionDialog extends StatefulWidget {
   BookOptionDialogState createState() => new BookOptionDialogState();
 
   static open(context, Book book, bool showTrash, {showHideButton = false, Function after}) async {
-    await Navigator.of(context).push(
-        TransparentRoute(builder: (BuildContext context) => BookOptionDialog(book, showTrash, showHideButton: showHideButton, onAfter: after,))
-    );
+    // await Navigator.of(context).push(
+    //     TransparentRoute(builder: (BuildContext context) => BookOptionDialog(book, showTrash, showHideButton: showHideButton, onAfter: after,))
+    // );
+    await showFloatingModalBottomSheet(context: context, builder: (_){
+      return BookOptionDialog(book, showTrash, showHideButton: showHideButton, onAfter: after,);
+    });
   }
 }
 
 class BookOptionDialogState extends State<BookOptionDialog> {
 
-
+  bool bookDownloaded = false;
   void _share() {
     Navigator.pop(context);
-    BookShareDialog.open(context, widget.book, () {
+    BookShareDialog.open(context, widget.book, () {});
+  }
 
-    });
-//    Share.share(widget.book.title + ' https://openlibrary.org', subject: widget.book.title);
-
+  @override
+  void initState() {
+    bookDownloaded = widget.book.isDownloaded();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     if (widget.showHideButton == null) {
       widget.showHideButton = false;
-    }
-    return new Scaffold(
-      backgroundColor: Color.fromRGBO(159, 159, 159, 0.8),
-        body: new Stack(
-            children: [
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.only(topRight: Radius.circular(8), topLeft: Radius.circular(8)),
-                      color: Colors.white,
-                    ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      this.widget.showHideButton? this.option('Не показывать в списке', Icons.delete, AppColors.secondary, () {removeFromRead();}) : Container(),
-                      this.widget.showTrash? this.option('Болшьше не показывать', Icons.delete, AppColors.secondary, () {}) : Container(),
-                      this.option('Добавить в избраное', Icons.favorite, AppColors.secondary, () {}),
-                      this.option('Сохранить в коллекцию', Icons.bookmark, AppColors.secondary, () {
-                        Navigator.pop(context);
-                        CollectionAddDialog.open(context, widget.book, (){});
-                      }),
-                      this.option('Поделиться', Icons.file_upload, AppColors.secondary, () {
-                        this._share();
-                      }),
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: 28),
-                        child: Divider(
-                          color: AppColors.primary,
-                          height: 2,
-                        ),
-                      ),
-                      this.option('Отменить', Icons.clear, AppColors.secondary, () {Navigator.pop(context);}),
-                    ],
-                  )
-                ),
-              )
-            ],
-          ),
-        );
+    }    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(topRight: Radius.circular(8), topLeft: Radius.circular(8)),
+        color: Colors.white,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          this.widget.showHideButton? this.option('Уже не читаю', Icons.delete, AppColors.secondary, () {removeFromRead();}) : Container(),
+          this.widget.showTrash? this.option('Болшьше не показывать', Icons.delete, AppColors.secondary, () {}) : Container(),
+          // this.option('Добавить в избраное', Icons.favorite, AppColors.secondary, () {}),
+          this.option('Сохранить в коллекцию', Icons.bookmark, AppColors.secondary, () {
+            Navigator.pop(context);
+            CollectionAddDialog.open(context, widget.book, (){});
+          }),
+          this.option('Поделиться', Icons.file_upload, AppColors.secondary, () {
+            this._share();
+          }),
+          this.option(bookDownloaded? 'Удалить': 'Загрузить', bookDownloaded? Icons.delete: Icons.download_rounded, AppColors.secondary, () async {
 
+            UiLoader.showLoader(context);                        
+            try {
+              if (bookDownloaded) {
+                await widget.book.deleteDownloaded();
+              } else {
+                await widget.book.downloadBook();   
+              }
+              
+              await UiLoader.doneLoader(context);
+              Navigator.pop(context);
+            } catch(e) {
+              await UiLoader.errorLoader(context);
+            }
+          }),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 28),
+            child: Divider(
+              color: AppColors.primary,
+              height: 2,
+            ),
+          ),
+          this.option('Отменить', Icons.clear, AppColors.secondary, () {Navigator.pop(context);}),
+        ],
+      )
+    );
   }
 
   Widget option(String text, IconData icon, Color color, Function onTap)
@@ -116,7 +126,7 @@ class BookOptionDialogState extends State<BookOptionDialog> {
   removeFromRead() async {
 
     await showDialog(builder: (context) => AlertDialog(
-      title: Text('Не показывать в списке?'),
+      title: Text('Сбросить прогресс чтения книги?'),
       actions: [
 
         TextButton(

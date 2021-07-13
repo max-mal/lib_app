@@ -36,7 +36,10 @@ class RestoreModalState extends State<RestoreModal> {
           SizedBox(
             height: 60,
           ),
-          SvgPicture.string(SvgIcons.logo),
+          Image(
+            image: AssetImage("assets/logo.png"),
+            width: 100,
+          ),
           SizedBox(
             height: 40,
           ),
@@ -86,23 +89,7 @@ class RestoreModalState extends State<RestoreModal> {
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: Colors.white)),
-          ),
-          SizedBox(height: 24),
-          GestureDetector(
-            onTap: () {},
-            child: Text.rich(TextSpan(
-                text: 'Вам ',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                children: [
-                  TextSpan(
-                    text: 'нужна помощь?',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline),
-                  ),
-                ])),
-          ),
+          ),          
           SizedBox(height: 54),
           GestureDetector(
             onTap: () {

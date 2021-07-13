@@ -45,6 +45,42 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
   }
 
   Widget collectionsList() {    
+
+    if (collections.length == 0) {
+      return Center(
+        child: Container(
+          margin: EdgeInsets.only(top: 80),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,  
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,        
+            children: [
+              Text('Здесь пока ничего нет', style: TextStyle(
+                color: AppColors.grey,
+                fontSize: 22,
+              )),
+              SizedBox(height: 24,),
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle
+                ),
+                child: Text('🐈', style: TextStyle(
+                  fontSize: 70
+                )),
+              ),
+              SizedBox(height: 24,),
+              Text('Для начала, \nдобавьте книгу в коллекцию', style: TextStyle(
+                color: AppColors.grey,
+                fontSize: 16,
+              ), textAlign: TextAlign.center,),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView.separated(
         shrinkWrap: true,
         physics: NeverScrollableScrollPhysics(),
@@ -165,16 +201,19 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
   void showDeletedMessage(Collection collection)
   {
     var _progressAnimcontroller = AnimationController(
-        duration: Duration(milliseconds: 100),
+        duration: Duration(milliseconds: 100000),
         vsync: this,
         value: 1
     );
 
 
     Timer timer = Timer.periodic(const Duration(milliseconds: 5), (Timer tmr) {
-      _progressAnimcontroller.value -= 5 / 5000;// 0.003;
+      _progressAnimcontroller.value -= 7 / 5000;// 0.003;
       if (_progressAnimcontroller.value <= 0 ) {
+        print('shouldDelete');
         userCollections.remove(collection);
+        serverApi.syncCollections();
+        print('timer cancel');
         tmr.cancel();
       }
     });
@@ -182,6 +221,11 @@ class _CollectionScreenState extends State<CollectionScreen> with TickerProvider
     Flushbar flushbar;
 
     flushbar = Flushbar(
+      onStatusChanged: (FlushbarStatus status) {
+        if (status == FlushbarStatus.DISMISSED) {
+          timer.cancel();
+        }
+      },
       messageText: Text("Удалено: " + collection.name, style: TextStyle(fontSize: 14, color: AppColors.primary),),
       showProgressIndicator: true,
       progressIndicatorBackgroundColor: Colors.black,

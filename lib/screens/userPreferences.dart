@@ -4,6 +4,8 @@ import 'package:flutter_app/models/author.dart';
 import 'package:flutter_app/models/genre.dart';
 import 'package:flutter_app/models/userAuthor.dart';
 import 'package:flutter_app/models/userGenre.dart';
+import 'package:flutter_app/parts/bottomNavBar.dart';
+import 'package:flutter_app/parts/input.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import '../colors.dart';
 import '../globals.dart';
@@ -29,7 +31,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
   TabController _tabController;
 
   final searchController = TextEditingController();
-  List<dynamic> genreList = [];
+  List<Genre> genreList = [];
   List<dynamic> authorList = [];
   List<Genre> filteredGenreList = [];
   List<int> selectedGenres = [];
@@ -42,6 +44,15 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    int prevIndex = 0;
+    _tabController.addListener(() {
+      if (_tabController.index != prevIndex) {
+        searchController.text = '';
+        prevIndex = _tabController.index;
+        setState(() {});
+      }
+    });
     snackBarContext = context;
     getGenres();
     getAuthors();
@@ -49,37 +60,21 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              margin: EdgeInsets.only(top: 24),
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Container(
-                  child: IconButton(icon: Icon(Icons.arrow_back_ios), onPressed: () {
-                    Navigator.pop(context);
-                  }),
-                ),
-              ),
-            ),
-            Container(
-//              height: MediaQuery.of(context).size.height - 80,
-                width: MediaQuery.of(context).size.width,
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    children: [
-                      this.header(),
-                      this.tabs(),
-                    ],
-                  ),
-                )
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavBar(
+        title: 'Мои интересы'
+      ),
+      body: Container(
+        padding: EdgeInsets.symmetric(horizontal: 15),
+        margin: EdgeInsets.only(top: 30),
+        child:NestedScrollView(
+          headerSliverBuilder: (context, value){
+            return [
+              SliverToBoxAdapter(child: this.header(),),
+            ];
+          }, 
+          body: this.tabs()
+        )
       ),
     );
   }
@@ -102,11 +97,34 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
   Widget tabs()
   {
 
-    return Column(
-      children: [
+    return Stack(
+      children: [        
         Container(
-          decoration: BoxDecoration(
-            //This is for background color
+          margin: EdgeInsets.only(top: 90),                   
+          child: TabBarView(
+              controller: _tabController,
+              children: [
+                isLoading? 
+                  Center(child: Container(margin: EdgeInsets.only(top: 40),child: Text('Загрузка...')))  : 
+                this.genresList(),                  
+                SingleChildScrollView(
+                  child: Column(
+                    children: [    
+                      SizedBox(height: 50,),                    
+                      isLoading? Container(margin: EdgeInsets.only(top: 20),child: Text('Загрузка...'))  : Container(),
+                      searchController.text.length > 0 || mineAuthorsList.length == 0? Container() : Container(margin: EdgeInsets.only(bottom: 10),child: Text('Ваш список', style: TextStyle(color: AppColors.grey, fontSize: 20))),
+                      searchController.text.length > 0 || mineAuthorsList.length == 0? Container() : this.authorsList(true),
+                      searchController.text.length > 0? Container() : Container(child: Text('Предложение', style: TextStyle(color: AppColors.grey, fontSize: 20))),
+                      this.authorsList(false),
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ]
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(            
               color: Colors.white.withOpacity(0.0),
               border: Border(bottom: BorderSide(color: AppColors.primary, width: 0.8))),
           child: TabBar(
@@ -120,41 +138,11 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
             ],
           ),
         ),
-        Container(
-          margin: EdgeInsets.only(top: 40),
-          width: MediaQuery.of(context).size.width - 48,
-          height: MediaQuery.of(context).size.height - 250,
-          child: TabBarView(
-              controller: _tabController,
-              children: [
-                Column(
-                  children: [
-                    isLoading? Container(margin: EdgeInsets.only(top: 20),child: Text('Загрузка...'))  : Container(),
-                    new Expanded(
-                      child: new SizedBox(
-                        child: this.genresList(),
-                        height: 200,
-                      ),
-                    ),
-                  ],
-                ),
-                SingleChildScrollView(
-                  child: SizedBox(
-                    child: Column(
-                      children: [
-                        this.authorsSearch(),
-                        isLoading? Container(margin: EdgeInsets.only(top: 20),child: Text('Загрузка...'))  : Container(),
-                        searchController.text.length > 0 || mineAuthorsList.length == 0? Container() : Container(margin: EdgeInsets.only(bottom: 10),child: Text('Ваш список', style: TextStyle(color: AppColors.grey, fontSize: 20))),
-                        searchController.text.length > 0 || mineAuthorsList.length == 0? Container() : this.authorsList(true),
-                        searchController.text.length > 0? Container() : Container(margin: EdgeInsets.only(bottom: 10),child: Text('Предложение', style: TextStyle(color: AppColors.grey, fontSize: 20))),
-                        this.authorsList(false),
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ]
-          ),
+        Positioned(
+          child: search(),
+          top: 60,
+          left: 0,
+          right: 0,
         )
       ],
     );
@@ -174,32 +162,19 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Container(
-                    height: 64,
-                    width: 64,
-                    margin: EdgeInsets.only(right: 24),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      image: DecorationImage(image: CachedNetworkImageProvider(currentGenre.picture), fit: BoxFit.cover),
-                      color: Colors.grey,
-                    ),
+              Expanded(
+                child: Container(                
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      new Container(
+                          constraints: BoxConstraints(maxWidth: 250),
+                          margin: EdgeInsets.only(bottom: 4),
+                          child: Text(currentGenre.name, textAlign: TextAlign.left, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.grey))
+                      ),
+                    ],
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width - 250,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        new Container(
-                            constraints: BoxConstraints(maxWidth: 250),
-                            margin: EdgeInsets.only(bottom: 4),
-                            child: Text(currentGenre.name, textAlign: TextAlign.left, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.grey))
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
               GestureDetector(
                   child: Container(
@@ -216,7 +191,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
                           ),
                         ]
                     ),
-                    child: Icon(selectedGenres.contains(currentGenre.id)? Icons.check : Icons.add, color: selectedGenres.contains(currentGenre.id)? AppColors.grey : Colors.black),
+                    child: Icon(selectedGenres.contains(currentGenre.id)? Icons.check : Icons.add, color: selectedGenres.contains(currentGenre.id)? Colors.white : Colors.black),
 
                   ),
                   onTap: () async {
@@ -250,18 +225,30 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
     setState(() {
       isLoading = true;
     });
-    genreList = await new Genre().all();
-
+    
     List<UserGenre> userGenres = List<UserGenre>.from(await UserGenre().all());
     for (UserGenre userGenre in userGenres) {
       selectedGenres.add(userGenre.genreId);
     }
 
+    genreList = List<Genre>.from(await new Genre().all());
+    sortGenres();
+
     serverApi.getGenres().then((data) async {
-      genreList = await new Genre().all();
+      genreList = List<Genre>.from(await new Genre().all());
+      sortGenres();
       setState((){ isLoading = false; });
     });
     setState((){});
+  }
+
+  sortGenres() {
+    genreList.sort((a,b){
+      int aValue = selectedGenres.contains(a.id)? 1: 0;
+      int bValue = selectedGenres.contains(b.id)? 1: 0;
+
+      return bValue - aValue;
+    });
   }
 
   Widget authorsList(bool onlyMine)
@@ -273,7 +260,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
       itemBuilder: (BuildContext ctx, int index) {
         Author currentAuthor = onlyMine? mineAuthorsList[index] : (searchController.text.length > 0? filteredAuthorList[index]: authorList[index]);
         return new Container(
-          padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -327,7 +314,7 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
                           ),
                         ]
                     ),
-                    child: Icon(selectedAuthors.contains(currentAuthor.id)? Icons.check : Icons.add, color: selectedAuthors.contains(currentAuthor.id)? AppColors.grey : Colors.black),
+                    child: Icon(selectedAuthors.contains(currentAuthor.id)? Icons.check : Icons.add, color: selectedAuthors.contains(currentAuthor.id)? Colors.white : Colors.black),
 
                   ),
                   onTap: () async {
@@ -360,33 +347,40 @@ class _UserPreferencesScreenState extends State<UserPreferencesScreen> with Tick
     );
   }
 
-  Widget authorsSearch()
-  {
-    return new Container(
-        margin: EdgeInsets.only(bottom: 20),
+  Widget search()
+  {    
+    return new Container(     
+      color: AppColors.background.withAlpha(230),   
         child: new TextFormField(
             controller: searchController,
             onChanged: (text) {
-              filteredAuthorList = [];
-              for (Author author in authorList) {
-                if (author.name.toLowerCase().indexOf(text.toLowerCase()) != -1 || author.surname.toLowerCase().indexOf(text.toLowerCase()) != -1) {
-                  filteredAuthorList.add(author);
+
+              if (_tabController.index == 1) {
+                filteredAuthorList = [];
+                for (Author author in authorList) {
+                  if (author.name.toLowerCase().indexOf(text.toLowerCase()) != -1 || author.surname.toLowerCase().indexOf(text.toLowerCase()) != -1) {
+                    filteredAuthorList.add(author);
+                  }
                 }
-              }
 
-              serverApi.getAuthors(query: searchController.text).then((data) async {
-                authorList = await new Author().where('name like ? or surname like ?', ['%' + text +'%', '%' + text +'%']).limit(20).find();
-                setState((){
-                  isLoading = false;
+                serverApi.getAuthors(query: searchController.text).then((data) async {
+                  authorList = await new Author().where('name like ? or surname like ?', ['%' + text +'%', '%' + text +'%']).limit(20).find();
+                  setState((){
+                    isLoading = false;
+                  });
                 });
-              });
 
-              setState(() {
-                isLoading = true;
-              });
+                setState(() {
+                  isLoading = true;
+                });
+              } else {
+                setState(() {
+                  filteredGenreList = genreList.where((element) => element.name.toLowerCase().contains(searchController.text.toLowerCase().trim())).toList();
+                });
+              }
             },
             decoration: new InputDecoration(
-              hintText: 'Поиск по авторам',
+              hintText: 'Поиск',
               border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
             )
         )

@@ -88,3 +88,16 @@ class BookAuthorMigration extends Migration {
     );
   }
 }
+
+
+class BookReviewsMigration extends Migration {
+  String name = "book_reviews_create";
+
+  void apply() async {
+    var database = await db.open();
+
+    database.execute(
+        "CREATE TABLE `book_review` ( `id`	INTEGER PRIMARY KEY AUTOINCREMENT, `bookId`	INTEGER, `text` TEXT, `time` TEXT, `username` TEXT);"
+    );
+  }
+}

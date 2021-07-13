@@ -5,10 +5,10 @@ import 'package:flutter_app/parts/book.dart';
 import 'package:flutter_app/parts/bottomNavBar.dart';
 import 'package:flutter_app/utils/transparent.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../colors.dart';
 import '../globals.dart';
-import 'category.dart';
 import 'package:html2md/html2md.dart' as html2md;
 
 class AuthorScreen extends StatefulWidget {
@@ -103,6 +103,9 @@ class _AuthorScreenState extends State<AuthorScreen> with AutomaticKeepAliveClie
             margin: EdgeInsets.only(top: 12),
             child: Text(widget.author.name + ' ' + widget.author.surname, style: TextStyle(color: Colors.black, fontSize: 16)),
           ),
+          IconButton(onPressed: (){
+            Share.share(widget.author.name + ' ' + widget.author.surname + '\n' + widget.author.getDeepLink(),subject: widget.author.name + ' ' + widget.author.surname);
+          }, icon: Icon(Icons.share, color: AppColors.secondary,))
         ],
       ),
     );
@@ -156,7 +159,7 @@ class _AuthorScreenState extends State<AuthorScreen> with AutomaticKeepAliveClie
         border: Border(top: BorderSide(color: Colors.grey.withAlpha(50), width: 0.8))
       ),
       child: Container(
-        color: AppColors.background,
+        color: Colors.white,
         child: Stack(
           children: [         
             // SizedBox(height: 10,),
@@ -177,10 +180,10 @@ class _AuthorScreenState extends State<AuthorScreen> with AutomaticKeepAliveClie
               // height: 200,
               child: Container(            
               decoration: BoxDecoration(            
-                  color: AppColors.background,
+                  color: Colors.white,
                   border: Border(bottom: BorderSide(color: AppColors.primary, width: 0.8))),
               child: Container(
-                color: AppColors.background,
+                color: Colors.white,
                 child: TabBar(
                   labelColor: AppColors.secondary,
                   unselectedLabelColor: AppColors.grey,

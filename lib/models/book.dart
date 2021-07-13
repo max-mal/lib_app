@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:faker/faker.dart';
 import 'package:flutter_app/database/core/models/base.dart';
 import 'package:flutter_app/models/bookAuthor.dart';
+import 'package:flutter_app/models/bookReview.dart';
 import 'package:flutter_app/models/bookType.dart';
 import 'package:flutter_app/models/type.dart';
 import 'package:flutter_app/utils/convert.dart';
@@ -47,6 +48,8 @@ class Book extends DatabaseModel {
   List<BookType> types = [];
 
   List<BookChapter> chapters = [];
+
+  List<BookReview> reviews;
 
   constructModel() {
     return new Book();
@@ -182,8 +185,7 @@ class Book extends DatabaseModel {
     for(BookGenre bookGenre in bookGenres) {
       Genre genre = await Genre().where('id = ?', [bookGenre.genreId]).first();
       if (genre != null) {
-        this.genres.add(genre);
-        print("Genre: " + genre.name);
+        this.genres.add(genre);        
       }
       
     }
@@ -217,19 +219,35 @@ class Book extends DatabaseModel {
     return super.afterFetch();
   }
 
+  isDownloaded() {
+    String filename = documentDirectory.path + '/book-' + this.id.toString() + '-chapter-1.json';
+    return File(filename).existsSync();
+  }
+
+  deleteDownloaded() async {
+    await getChapters();
+    for (BookChapter chapter in this.chapters) {
+      
+      String filename = documentDirectory.path + '/book-' + this.id.toString() + '-chapter-' + chapter.number.toString() + '.json';
+      File file = File(filename);
+      if ( await file.exists()) {
+        await file.delete();
+      }
+    }
+  }
+
   downloadBook({onProgress}) async {
     if (onProgress == null) {
       onProgress = (status){ print(status); };
     }
     onProgress('Получаю информацию о книге...');
-    await getChapters();
-    final directory = await getApplicationDocumentsDirectory();
+    await getChapters();    
 
     bool hasFiles = true;
 
     for (BookChapter chapter in this.chapters) {
       onProgress('Загружаю главу ' + (chapter.number + 1).toString() + '/' + this.chapters.length.toString());
-      String filename = directory.path + '/book-' + this.id.toString() + '-chapter-' + chapter.number.toString() + '.json';
+      String filename = documentDirectory.path + '/book-' + this.id.toString() + '-chapter-' + chapter.number.toString() + '.json';
       if (!await File(filename).exists()) {
         String response = await http.read(chapter.getUrl());
         await File(filename).writeAsString(response);
@@ -245,7 +263,7 @@ class Book extends DatabaseModel {
     try {
       onProgress('Получаю список изображений...');
       String url = serverApi.booksUrl + this.id.toString() + '/images.json';
-      var response = jsonDecode(await http.read(url));
+      var response = jsonDecode(await http.read(Uri.parse(url)));
       int index = 0;
       for (var imageUrl in response) {
         onProgress('Загружаю изображение ' + (index + 1).toString() + '/' + response.length.toString());
@@ -276,5 +294,16 @@ class Book extends DatabaseModel {
     return this.authors;
   }
 
+  getReviews() async {
+    if (reviews != null) {
+      return reviews;
+    }
 
+    reviews = await serverApi.getBookReviews(this);
+    return reviews;
+  }
+
+  getDeepLink() {
+    return serverApi.getServerUrl() + '/link/book/${this.id}';
+  }
 }

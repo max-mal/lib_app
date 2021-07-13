@@ -12,39 +12,41 @@ import '../globals.dart';
 class Parser {
   BuildContext context;
 
-  Future<Widget> parse(BookChapter chapter) async {
+  Future<dynamic> parse(BookChapter chapter, {bool returnBlocks = false}) async {
     List<Widget> widgets = [];
     String response = await chapter.getContents();
     var json = jsonDecode(response);
-
-    print(json);
+    
+    if (returnBlocks == true) {
+      return List<dynamic>.from(json['blocks']);
+    }
 
     for (var block in json['blocks']) {
-      switch (block['type']) {
-        case 'header':
-          widgets.add(renderHeader(block));
-          break;
-        case 'paragraph':
-          widgets.add(renderParagraph(block));
-          break;
-        case 'list':
-          widgets.add(renderList(block));
-          break;
-        case 'image':
-          widgets.add(renderImage(block));
-          break;
-        case 'delimiter':
-          widgets.add(renderDivider(block));
-          break;
-        default:
-          print ('Unknown block: ' + block['type']);
-          break;
-      }
+      widgets.add(renderBlock(block));
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: widgets,
     );
+  }
+
+  Widget renderBlock(block) {    
+    switch (block['type']) {
+      case 'header':
+        return renderHeader(block);        
+      case 'paragraph':
+        return renderParagraph(block);        
+      case 'list':
+        return renderList(block);        
+      case 'image':
+        return renderImage(block);        
+      case 'delimiter':
+        return renderDivider(block);        
+      default:
+        print ('Unknown block: ' + block['type']);
+        return Container();        
+    }
   }
 
   Widget renderHeader(var block)
@@ -56,7 +58,7 @@ class Parser {
           block['data']['text'],
           textAlign: TextAlign.center,
           style: TextStyle(
-              fontSize: block['data']['level'] == 1? 28: 16,
+              fontSize: block['data']['level'] == 1? (editorFontSize + 12.0): editorFontSize.toDouble(),
               color: readerFontColor,
               fontWeight: FontWeight.bold,
             fontFamily: readerFontFamily
@@ -115,7 +117,7 @@ class Parser {
           CachedNetworkImage(
             cacheManager: DefaultCacheManager(),
             imageUrl: block['data']['file']['url'],
-            placeholder: (context, url) => CircularProgressIndicator(),
+            placeholder: (context, url) => Center(child: CircularProgressIndicator()),
             errorWidget: (context, url, error) => Icon(Icons.error),
             height: 300,
             fit: BoxFit.scaleDown,
@@ -144,7 +146,7 @@ class Parser {
 //    return Text(text);
     if (style == null) {
       style = TextStyle(
-          fontSize: editorSmallText? 16: 20,
+          fontSize: editorFontSize.toDouble(),
           color: readerFontColor,
         fontFamily: readerFontFamily
       );

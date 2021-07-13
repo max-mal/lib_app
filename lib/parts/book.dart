@@ -5,6 +5,8 @@ import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/screens/author.dart';
 import 'package:flutter_app/screens/book.dart';
 import 'package:flutter_app/screens/category.dart';
+import 'package:flutter_app/screens/profile.dart';
+import 'package:flutter_app/ui/button.dart';
 
 import '../colors.dart';
 
@@ -108,10 +110,10 @@ class BookWidget extends StatelessWidget {
                       ),
                       Container(
                         constraints: BoxConstraints(maxWidth: 130),
-                        margin: EdgeInsets.only(top: 8, bottom: 12),
+                        margin: EdgeInsets.only(top: 8, bottom: 6),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: book.authors.map((author) => Container(
+                          children: book.authors.take(3).map((author) => Container(
                             margin: EdgeInsets.only(bottom: 5),
                             child: GestureDetector(
                               child: Text((author.name + ' ' + author.surname).trim(), style: TextStyle(
@@ -129,6 +131,14 @@ class BookWidget extends StatelessWidget {
                           )).toList(),
                         ),
                       ),
+                      book.authors.length > 3? GestureDetector(
+                        onTap: () { _onAuthorsTap(context); },
+                        child: Text('И другие...', style: TextStyle(
+                            color: AppColors.grey,
+                            fontSize: 14,
+                          )
+                        ),
+                      ): Container(),
                       Divider(
                         height: 5,
                         color: AppColors.primary,
@@ -145,7 +155,7 @@ class BookWidget extends StatelessWidget {
               ),
               onPressed: () async {
                 print('Options - ' + item.id.toString());
-                await BookOptionDialog.open(context, item, true);
+                await BookOptionDialog.open(context, item, false);
                 if (onAfter != null) {
                   onAfter();
                 }
@@ -157,13 +167,32 @@ class BookWidget extends StatelessWidget {
       ),
     );
   }
+
+  _onAuthorsTap(context){
+    showFloatingModalBottomSheet(context: context, builder: (_){
+      return Container(
+        padding: EdgeInsets.all(10),
+        child: ListView(        
+          children: book.authors.map((author) => UiButton(
+            backgroundColor: Colors.white,
+            borderColor: AppColors.grey, 
+            padding: EdgeInsets.all(5),
+            child: GestureDetector(
+              child: Text((author.name + ' ' + author.surname).trim(), style: TextStyle(color: AppColors.grey), textAlign: TextAlign.center),
+              onTap: () async {
+                Navigator.pop(context);
+                await AuthorScreen.open(context, author, (){});
+                if (onAfter != null) {
+                  onAfter();
+                }
+              },
+            ),
+          )).toList(),
+        ),
+      );
+    });
+  }
 }
-
-
-
-
-
-
 
 class ReadingBookWidget extends StatelessWidget {
   const ReadingBookWidget({

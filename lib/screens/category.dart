@@ -92,7 +92,10 @@ class _CategoryScreenState extends State<CategoryScreen> with AutomaticKeepAlive
     } else {
       books = List<Book>.from(list);
     }
-
+    
+    if (!mounted) {
+      return;
+    }
     setState((){
       isLoading = false;
       isMoreLoading = false;

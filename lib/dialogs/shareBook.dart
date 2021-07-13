@@ -23,8 +23,13 @@ class BookShareDialog extends StatefulWidget {
 
 class BookShareDialogState extends State<BookShareDialog> {
 
-  void _share() {
-    Share.share(widget.book.author.name + ' ' +  widget.book.author.surname + ' - ' + widget.book.title, subject: widget.book.title);
+  void _share({bool link = false}) {
+    if (link) {
+      Share.share(widget.book.getDeepLink(), subject: widget.book.title);
+    } else {
+      Share.share(((widget.book.author?.name?? '') + ' ' +  (widget.book.author?.surname ?? '') + ' - ' + widget.book.title).trim(), subject: widget.book.title);
+    }
+    
     Navigator.pop(context);
   }
 
@@ -56,13 +61,9 @@ class BookShareDialogState extends State<BookShareDialog> {
                       height: 100,
                       child: ListView(
                         scrollDirection: Axis.horizontal,
-                        children: [
-                          this.shareOption('Facebook', Colors.blue, Icons.face, () { _share(); }),
-                          this.shareOption('Gmail', Colors.red, Icons.mail, () { _share(); }),
-                          this.shareOption('Messenger', Colors.lightBlue, Icons.message, () { _share(); }),
-                          this.shareOption('Ссылка', Colors.red, Icons.content_copy, () { _share(); }),
-                          this.shareOption('Больше', AppColors.primary, Icons.more_vert, () { _share(); }),
-
+                        children: [                         
+                          this.shareOption('Название', Colors.blue, Icons.book, () { _share(); }),
+                          this.shareOption('Ссылка', Colors.red, Icons.content_copy, () { _share(link: true); }),                          
                         ],
                       ),
                     ),

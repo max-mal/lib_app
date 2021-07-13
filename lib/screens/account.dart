@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/screens/booksList.dart';
 import 'package:flutter_app/screens/profile.dart';
 import 'package:flutter_app/screens/userPreferences.dart';
 
@@ -30,50 +32,53 @@ class _AccountScreenState extends State<AccountScreen> {
             ),
             this.header(),
             this.divider(),
-            this.menuItem('Мой профиль', (){
-              ProfileScreen.open(context);
+            this.menuItem('Мой профиль', () async {
+              await ProfileScreen.open(context);
+              setState(() {});
             }),
             this.divider(),
             this.menuItem('Настройка интересов', (){
               UserPreferencesScreen.open(context);
             }),
             this.divider(),
-            this.menuItem('Посещенные книги', (){}),
-            this.divider(),
-            this.menuItem('История покупок', (){}),
-            this.divider(),
-            this.menuItem('Помощь', (){}),
-            this.divider(),
-            this.menuItem('Пригласить друга', (){}),
-            this.divider(),
-            this.menuItem('Выйти', (){ user.logout(); this.widget.goTo('welcome'); }),
+            this.menuItem('Загруженные книги', (){
+              showDialog(context: context, builder: (_){
+                return BooksListScreen(
+                  title: 'Загруженные книги',
+                  getBooks: () async {
+                    return await serverApi.getDownloadedBooks();
+                  },
+                );
+              });
+            }),
+            this.divider(),            
+            this.menuItem('Выйти', (){ user.logout(); this.widget.goTo('start'); }),
           ],
         ),
       ),
     );
   }
 
-  Widget header() {
+  Widget header() {    
     return Container(
-      margin: EdgeInsets.only(top: 40 ,bottom: 40),
+      margin: EdgeInsets.only(top: 40 ,bottom: 20),
       child: Row(
         children: [
           Container(
             width: 48,
             height: 48,
             margin: EdgeInsets.only(right: 12),
-            decoration: BoxDecoration(
-              color: AppColors.grey,
-              image: user.picture != null? DecorationImage(image: NetworkImage(user.picture)) : null,
-              borderRadius: BorderRadius.circular(24)
+            decoration: BoxDecoration(              
+              image: DecorationImage(image: (user.picture ?? '').isNotEmpty? CachedNetworkImageProvider(user.picture): AssetImage("assets/logo.png")),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.grey)
             ),
           ),
           Container(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(margin: EdgeInsets.only(bottom: 4),child: Text((user.name ?? '') + ' ' + (user.lastName ?? ''), style: TextStyle(color: AppColors.getColor('black'), fontSize: 16)),),
-                Container(child: Text('Настройка учетной записи', style: TextStyle(color: AppColors.secondary, fontSize: 16)),),
+                Container(margin: EdgeInsets.only(bottom: 4),child: Text('${user.getName()} ${user.getLastName()}', style: TextStyle(color: AppColors.getColor('black'), fontSize: 16)),),                
               ],
             ),
           )

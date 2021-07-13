@@ -39,7 +39,10 @@ class LoginModalState extends State<LoginModal> {
           SizedBox(
             height: 60,
           ),
-          SvgPicture.string(SvgIcons.logo),
+          Image(
+            image: AssetImage("assets/logo.png"),
+            width: 100,
+          ),
           SizedBox(
             height: 40,
           ),

@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_app/models/bookAuthor.dart';
+import 'package:flutter_app/models/bookReview.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 
 import 'database/core/models/preferences.dart';
-import 'database/init.dart';
 import 'globals.dart';
 import 'models/author.dart';
 import 'models/book.dart';
@@ -32,15 +32,45 @@ class ServerApi {
       ? 'http://192.168.0.101:8081/books/'
       : 'http://192.168.0.101:8081/books/';
 
+  String backupServerUrl = "http://pi.my-pc.pw:8081/api/";
+  String backupBooksUrl = "http://pi.my-pc.pw:8081/api/";
+
   bool hasConnection = false;
 
-  probe() async {
-    print('Probing connection...');
-    var response = await this.get('auth/probe', ignoreConnectionStatus: true);
+  getServerUrl() {
+    return this.serverUrl.replaceAll('/api/', '');
+  }
+
+  probe({bool backupUrl = false}) async {    
+    if (backupUrl) {
+      String currentUrl = serverUrl;
+      String currentBooksUrl = booksUrl;
+
+      serverUrl = backupServerUrl;
+      booksUrl = backupBooksUrl;
+
+      backupServerUrl = currentUrl;
+      backupBooksUrl = currentBooksUrl;
+    }
+    print('Probing connection on $serverUrl ...');
+    var response;
+    try {
+      response = await this.get('auth/probe', ignoreConnectionStatus: true);
+    } catch (e) {
+      hasConnection = false;
+      if (backupUrl == false) {
+        probe(backupUrl: true);
+      }
+      return;
+    }
+
     if (response['ok'] == true) {
       hasConnection = true;
     } else {
       hasConnection = false;
+      if (backupUrl == false) {
+        probe(backupUrl: true);
+      }      
     }
 
     print('Probe finished: ' + (hasConnection ? 'ok' : 'no connection'));
@@ -73,10 +103,10 @@ class ServerApi {
         (token != null ? ('?token=' + token) : '') +
         params.join('&'));
     try {
-      http.Response response = await http.get(serverUrl +
+      http.Response response = await http.get(Uri.parse(serverUrl +
           method +
           (token != null ? ('?token=' + token) : '') +
-          params.join('&'));
+          params.join('&')));
       return jsonDecode(response.body);
     } catch (exception) {
       print(exception);
@@ -95,7 +125,7 @@ class ServerApi {
     http.Response response;
     try {
       response = await http.post(
-          serverUrl + method + (token != null ? ('?token=' + token) : ''),
+          Uri.parse(serverUrl + method + (token != null ? ('?token=' + token) : '')),
           body: body);
       print(response.body);
       return jsonDecode(response.body);
@@ -144,6 +174,7 @@ class ServerApi {
           name: userResponse['name'],
           lastName: userResponse['lastName'],
           email: userResponse['email']);
+      user.picture = userResponse['picture'];
       await user.store();
       return true;
     }
@@ -201,6 +232,26 @@ class ServerApi {
     }
 
     return await new Genre().all();
+  }
+
+  Future<Genre> getGenre(int id) async {
+    var response = await this.get('genre/get', params: ['id=$id']);
+    var responseGenre = response['genre'];
+    var genre = await Genre().where('id = ?', [responseGenre['id']]).first();
+    if (responseGenre['isDeleted'] == true) {
+      await genre.remove();    
+      return null;
+    }
+
+    genre = Genre(
+      id: int.parse(responseGenre['id']),
+      name: responseGenre['name'],
+      picture: responseGenre['picture'],
+      count: int.parse(responseGenre['count']));
+
+    await genre.store();
+
+    return genre;
   }
 
   dynamic getAuthors(
@@ -483,6 +534,11 @@ class ServerApi {
         bookGenre.genreId = int.parse(bookGenreId.toString());
         await bookGenre.save();
       }
+
+      Genre genre = await Genre().where('id = ?', [bookGenre.genreId.toString()]).first();
+      if (genre == null) {
+        await getGenre(bookGenre.genreId);
+      }
     }
 
     for (BookGenre bookGenre
@@ -731,5 +787,96 @@ class ServerApi {
     }
 
     return response['books'];
+  }
+
+  getBookReviews(Book book) async {
+
+    if (hasConnection == false) {
+      return List<BookReview>.from(await BookReview().where('bookId = ?', [book.id.toString()]).find());
+    }
+    
+    var response = await this.get('books/reviews', params: ['&id=${book.id}']);
+
+    if (response['ok'] != true) {
+      this.getError(response, showSnackbar: true);
+      return null;
+    }
+    List<BookReview> reviews = [];
+    await BookReview().where('bookId = ?', [book.id.toString()]).delete();
+    for (var review in response['reviews']){
+      BookReview reviewModel = BookReview();
+      reviewModel.loadFromMap(review);
+      await reviewModel.save();
+      reviews.add(reviewModel);
+    }
+
+    return reviews;
+  }
+
+  uploadAvatar(String filePath) async {
+    var uri = Uri.parse(serverUrl + 'profile/avatar?token=${this.token}');
+    print(uri.toString());
+    var request = http.MultipartRequest('POST', uri)      
+      ..files.add(await http.MultipartFile.fromPath(
+          'avatar', filePath,
+      ));
+    var response = await request.send();    
+    String responseBody = await response.stream.bytesToString();
+    print(responseBody);
+    var body = jsonDecode(responseBody);
+    print(body);
+    if (response.statusCode != 200) {
+      print('Got code: ' + response.statusCode.toString());
+      this.getError(body ?? {});
+      return false;
+    }
+
+    if (body['ok'] == true) {
+      return true;
+    }
+
+    this.getError(body);
+    return false;
+  }
+
+  getUser() async {
+    var userResponse = await this.get('profile/get');
+    print(userResponse);
+    user = new User(
+        id: toInt(userResponse['id']),
+        name: userResponse['name'],
+        lastName: userResponse['lastName'],
+        email: userResponse['email']);
+    user.picture = userResponse['picture'];
+    await user.store();
+    return true;
+  }
+
+  changePassword(String password) async {
+    var response = await this.post('profile/password', {
+      'password': password
+    });
+
+    if (response['ok'] == true) {
+      return true;
+    }
+
+    this.getError(response);
+    return false;    
+  }
+
+  getDownloadedBooks() async {    
+    Directory dir = Directory(documentDirectory.path);
+    List<FileSystemEntity> list = await dir.list().toList();
+    List<int> bookIds = [];
+    for (FileSystemEntity e in list) {
+      String filename = e.path.split('/').last;
+      List<String> parts = filename.split('-');
+      if (parts.length == 4 && !bookIds.contains(int.parse(parts[1]))) {
+        bookIds.add(int.parse(parts[1]));
+      }
+    }
+
+    return List<Book>.from(await Book().where('id in (${bookIds.join(',')})', []).find());
   }
 }

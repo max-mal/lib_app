@@ -39,7 +39,10 @@ class RegisterModalState extends State<RegisterModal> {
           SizedBox(
             height: 60,
           ),
-          SvgPicture.string(SvgIcons.logo),
+          Image(
+            image: AssetImage("assets/logo.png"),
+            width: 100,
+          ),
           SizedBox(
             height: 40,
           ),
@@ -105,22 +108,22 @@ class RegisterModalState extends State<RegisterModal> {
                 privacyAccepted = value;
               });
             },
-            child: Text.rich(TextSpan(
-                text: 'Я принимаю условия ',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                children: [
-                  TextSpan(
-                    text: 'Пользовательского соглашения',
-                    style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.underline),
-                  ),
-                  TextSpan(
-                    text: ' и согласен на обработку моих персональных данных',
+            child: Column(
+              children: [
+                Text.rich(TextSpan(
+                    text: 'Я соглашаюсь быть примерным ',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500),
-                  )
-                ])),
+                    children: [
+                      TextSpan(
+                        text: '🐈',
+                        style: TextStyle(
+                          fontSize: 24,
+                        ),
+                      ),
+                    ])),
+                    SizedBox(height: 6,)
+              ],
+            ),
           ),
           SizedBox(height: 54),
           GestureDetector(

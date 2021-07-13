@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
 import 'package:flutter_app/models/user.dart';
 import 'package:flutter_app/platform/screen.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:superellipse_shape/superellipse_shape.dart';
 
 import '../globals.dart';
@@ -62,6 +63,8 @@ class LoadingScreenState extends State<LoadingScreen>
       Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => AppScreen()));
     });
+
+    documentDirectory = await getApplicationDocumentsDirectory();
   }
 
   @override

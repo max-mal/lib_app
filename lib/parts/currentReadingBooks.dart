@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/dialogs/bookOption.dart';
 import 'package:flutter_app/models/book.dart';
 import 'package:flutter_app/parts/book.dart';
+import 'package:flutter_app/screens/areader.dart';
 import 'package:flutter_app/screens/author.dart';
 import 'package:flutter_app/screens/book.dart';
 import 'package:flutter_app/screens/category.dart';
@@ -24,12 +26,27 @@ class CurrentReadingBooks extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('Приветствуем,', style: TextStyle(
+              color: AppColors.grey,
+              fontSize: 26,
+            )),
+          SizedBox(height: 5,), 
             Text('Вы пока ничего не читаете...', style: TextStyle(
               color: AppColors.grey,
               fontSize: 18,
             )),
             SizedBox(height: 10),
-            Center(child: Image(image: AssetImage("assets/logo.png"), width: 200,))
+            Stack(
+              children: [
+                Center(child: Image(image: AssetImage("assets/logo.png"),height: 110,)),
+                Positioned(
+                  bottom: 5,
+                  left: 0,
+                  right: 73,
+                  child: Center(child: Icon(Icons.book_rounded, color: AppColors.grey, size: 30,)),
+                ),
+              ],
+            )
           ]
         )
       );
@@ -91,11 +108,22 @@ class CurrentReadingBooks extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(readingBooks.first.title, style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w400
-                        )),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(readingBooks.first.title, style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w400
+                              )),
+                            ),
+                            IconButton(onPressed: () async {
+                              BookOptionDialog.open(context, readingBooks.first, false, showHideButton: true, after: (){
+                                onAfter();
+                              });
+                            }, icon: Icon(Icons.more_vert),color: AppColors.grey,)
+                          ],
+                        ),
                         SizedBox(height: 10,),
                         Wrap(
                           runSpacing: 10,
@@ -139,6 +167,23 @@ class CurrentReadingBooks extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: 20,),
+                        ElevatedButton(
+                          style: ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all(AppColors.secondary),
+                            minimumSize: MaterialStateProperty.all(Size(200,40)),
+                          ),
+                          child: Text('Продолжить читать', style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onPressed: (){
+                            showDialog(context: context, builder: (_){
+                              return AReaderScreeen(book: readingBooks.first);
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),

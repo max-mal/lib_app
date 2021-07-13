@@ -40,6 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
     this.getCollections();
   }
 
+  
+
   getCollections() async {
     if (serverApi.hasConnection) {
       serverApi.syncCollections();
@@ -140,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             margin: EdgeInsets.only(top: 8),
-            child: Text('По вашим предпочтениям', style: TextStyle(
+            child: Text('Вам может понравиться', style: TextStyle(
               color: AppColors.secondary,
               fontSize: 14,
             )),

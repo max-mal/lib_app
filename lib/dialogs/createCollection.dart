@@ -94,8 +94,9 @@ class CollectionCreateDialogState extends State<CollectionCreateDialog> {
 
 
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-                        child: this.button('Создать коллекцию', AppColors.secondary, AppColors.grey, () async {
+                        margin: EdgeInsets.symmetric(horizontal: 28),
+                        padding: EdgeInsets.only(top: 24),
+                        child: this.button('Создать коллекцию', AppColors.secondary, Colors.white, () async {
                           if (!_formKey.currentState.validate()) {
                             return;
                           }
@@ -111,7 +112,7 @@ class CollectionCreateDialogState extends State<CollectionCreateDialog> {
                       ),
                       Container(
                         margin: EdgeInsets.symmetric(horizontal: 28),
-                        child: this.button('Отменить', Colors.white, Colors.black, () {
+                        child: this.button('Отменить', Colors.white, AppColors.grey, () {
                           Navigator.pop(context);
                         }),
                       ),

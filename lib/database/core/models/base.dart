@@ -16,8 +16,7 @@ class DatabaseModel {
   int _offset;
 
   bool isCreated = false;
-
-
+  
   constructModel() {
     return new DatabaseModel();
   }
@@ -149,6 +148,11 @@ class DatabaseModel {
     }
 
     return list;
+  }
+
+  rawStatement(String sql) async {
+    var database = await db.open();
+    await database.execute(sql);
   }
 
   first() async {

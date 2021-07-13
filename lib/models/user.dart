@@ -1,8 +1,15 @@
 import 'package:faker/faker.dart';
 import 'package:flutter_app/database/core/models/base.dart';
 import 'package:flutter_app/database/core/models/preferences.dart';
+import 'package:flutter_app/models/book.dart';
+import 'package:flutter_app/models/bookChapter.dart';
+import 'package:flutter_app/models/collection.dart';
 import 'package:flutter_app/models/subscription.dart';
+import 'package:flutter_app/models/userAuthor.dart';
+import 'package:flutter_app/models/userGenre.dart';
+import 'package:flutter_app/screens/home.dart';
 
+import 'collectionBooks.dart';
 import 'promocode.dart';
 import '../globals.dart';
 
@@ -118,7 +125,36 @@ class User extends DatabaseModel {
   void logout() async {
     await Preferences.unset('token');
     await user.remove();
+
+    await UserGenre().delete();
+    await UserAuthor().delete();
+    await Book().rawStatement("UPDATE books SET progress = 0;");
+    await Collection().delete();
+    await CollectionBook().delete();
+
+    moreBooks = [];
+    readingBooks = [];
+    loadingReadingBooks = true;
+    moreBooksPage = 0;
+
     user = null;
+  }
+
+  getName() {
+    String userName = this.name ?? '';
+    if (userName.isEmpty) {
+      userName = '🐈';
+    }
+    
+    return userName;
+  }
+
+  getLastName() {
+    String userSurname = user.lastName ?? '';
+    if ((this.name ?? '').isEmpty && userSurname.isEmpty) {
+      userSurname = 'Муррыч';
+    }
+    return userSurname;
   }
 
 }

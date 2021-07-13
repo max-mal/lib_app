@@ -9,6 +9,7 @@ class AppInputWidget extends StatelessWidget {
   final String placeholder;
   final Function onChanged;
   final TextEditingController controller;
+  final bool obscure;
 
   const AppInputWidget({
     Key key,
@@ -17,6 +18,7 @@ class AppInputWidget extends StatelessWidget {
     this.placeholder,
     this.onChanged,
     this.controller,
+    this.obscure = false
   }) : super(key: key);
 
 
@@ -29,6 +31,7 @@ class AppInputWidget extends StatelessWidget {
           controller: controller,
           onChanged: onChanged,
           keyboardType: type,
+          obscureText: obscure,
           decoration: new InputDecoration(
             hintText: placeholder,
             border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(5))),

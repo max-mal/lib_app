@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/models/author.dart';
+import 'package:flutter_app/models/book.dart';
+import 'package:flutter_app/screens/author.dart';
+import 'package:flutter_app/screens/book.dart';
+import 'package:flutter_app/ui/loader.dart';
+import 'package:uni_links/uni_links.dart';
 import 'package:flutter_app/dialogs/navigation.dart';
 import 'package:flutter_app/dialogs/search.dart';
+import 'package:flutter_app/screens/afterRegister.dart';
 import 'package:flutter_app/screens/collection.dart';
 import 'package:flutter_app/screens/news.dart';
 import 'package:flutter_app/screens/recomendations.dart';
@@ -15,6 +22,8 @@ import '../screens/genres.dart';
 import '../screens/authors.dart';
 import '../screens/congratulation.dart';
 
+bool gotInitialLink = false;
+
 class AppScreen extends StatefulWidget {
   const AppScreen({Key key, this.page}) : super(key: key);
 
@@ -27,6 +36,82 @@ class ScreenState extends State<AppScreen> {
   String page = user == null ? 'start' : 'home';
   bool showTabs = true;
   int navBarSelectedIndex = 0;
+
+  @override
+  initState(){
+    initDeepLinks();
+    super.initState();
+  }
+
+  initDeepLinks() async {
+    getLinksStream().listen((String link) {
+      processDeepLink(link);
+    }, onError: (err) async {
+      UiLoader.showLoader(context);
+      await Future.delayed(Duration(seconds: 1));
+      await UiLoader.errorLoader(context);
+    });
+    String initialLink = await getInitialLink();
+    if (!gotInitialLink) {
+      gotInitialLink = true;
+      processDeepLink(initialLink);
+    }
+  }
+
+  processDeepLink(String link) async {
+    if (link == null) {
+      return;
+    }
+
+    String req = link.replaceAll('meow://books/', '');
+    List<String> parts = req.split('/').where((element) => element.isNotEmpty).toList();
+
+    if (parts.isEmpty) {
+      return;
+    }
+
+    if (int.tryParse(parts.first) != null && parts.length == 1) {      
+      try {
+        UiLoader.showLoader(context);
+        int bookId = int.tryParse(parts.first);
+        Book book = await Book().where('id = ?', [parts.first]).first();
+        if (book == null) {
+          book = await serverApi.getBook(bookId);
+        }
+        if (book == null) {
+          await UiLoader.errorLoader(context);
+          return;
+        }
+        Navigator.pop(context);
+        BookScreen.open(context, book, goTo);
+      } catch (e) {
+        await UiLoader.errorLoader(context);
+      }
+      
+      return;
+    }
+
+    if (parts.first == 'author' && int.tryParse(parts.last) != null && parts.length == 2) {      
+      try {
+        UiLoader.showLoader(context);
+        int authorId = int.tryParse(parts.last);
+        Author author = await Author().where('id = ?', [parts.last]).first();
+        if (author == null) {
+          author = await serverApi.getAuthor(authorId);
+        }
+        if (author == null) {
+          await UiLoader.errorLoader(context);
+          return;
+        }
+        Navigator.pop(context);
+        AuthorScreen.open(context, author, goTo);
+      } catch (e) {
+        await UiLoader.errorLoader(context);
+      }
+      
+      return;
+    }
+  }
 
   void goTo(String page) {
     setState(() {
@@ -171,6 +256,11 @@ class ScreenState extends State<AppScreen> {
           navBarSelectedIndex = 5;
         });
         return new NewsScreen(goTo: this.goTo);
+      case 'afterRegister':
+        setState((){
+          this.showTabs = false;
+        });
+        return new AfterRegisterScreen(goTo: this.goTo);
     }
     setState(() {
       this.showTabs = true;

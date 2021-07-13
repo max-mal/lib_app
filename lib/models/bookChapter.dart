@@ -21,7 +21,8 @@ class BookChapter extends DatabaseModel {
   BookChapter({
     this.id,
     this.number,
-    this.title
+    this.title,
+    this.bookId,
   });
 
   constructModel() {
@@ -63,8 +64,8 @@ class BookChapter extends DatabaseModel {
     return list;
   }
 
-  getUrl() {
-    return serverApi.booksUrl + this.bookId.toString() + this.url;
+  Uri getUrl() {
+    return Uri.parse(serverApi.booksUrl + this.bookId.toString() + this.url);
   }
 
   getContents() async {
